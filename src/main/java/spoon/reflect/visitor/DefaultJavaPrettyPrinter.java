@@ -1945,14 +1945,32 @@ public class DefaultJavaPrettyPrinter implements CtVisitor, PrettyPrinter {
 	}
 
 	public void visitCtTypeReferenceWithoutGenerics(CtTypeReference<?> ref) {
-		if (ref.getDeclaringType() != null) {
-			if (!context.ignoreEnclosingClass) {
-				visitCtTypeReferenceWithoutGenerics(ref.getDeclaringType());
-				write(".");
-			}
+		if (ref.isPrimitive()) {
+			write(ref.getSimpleName());
+			return;
+		}
+
+		if (!context.ignoreImport
+				&& (importsContext.isImported(ref) && ref.getPackage() != null)) {
+			printTypeAnnotations(ref);
 			write(ref.getSimpleName());
 		} else {
-			write(ref.getQualifiedName());
+			if (ref.getDeclaringType() != null) {
+				if (!context.currentThis.contains(ref.getDeclaringType())
+						|| ref.getModifiers().contains(ModifierKind.STATIC)
+						|| hasDeclaringTypeWithGenerics(ref)) {
+					if (!context.ignoreEnclosingClass) {
+						boolean ign = context.ignoreGenerics;
+						context.ignoreGenerics = true;
+						scan(ref.getDeclaringType());
+						write(".");
+						context.ignoreGenerics = ign;
+					}
+				}
+				write(ref.getSimpleName());
+			} else {
+				write(ref.getQualifiedName());
+			}
 		}
 	}
 
