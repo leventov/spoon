@@ -7,7 +7,7 @@
     <version>7</version>
   </parent>
 
-  <groupId>fr.inria.gforge.spoon</groupId>
+  <groupId>net.openhft</groupId>
   <artifactId>spoon-core</artifactId>
   <packaging>jar</packaging>
   <version>4.3.0-SNAPSHOT</version>
@@ -152,10 +152,10 @@
   </developers>
 
   <scm>
-    <url>https://gforge.inria.fr/scm/viewvc.php/?root=spoon</url>
-    <connection>scm:git:ssh://scm.gforge.inria.fr/home/groups/spoon/spoon.git</connection>
-    <developerConnection>scm:git:ssh://scm.gforge.inria.fr/home/groups/spoon/spoon.git</developerConnection>
-    <tag>HEAD</tag>
+    <url>scm:git:git@github.com:OpenHFT/Spoon.git</url>
+    <connection>scm:git:git@github.com:OpenHFT/Spoon.git</connection>
+    <developerConnection>scm:git:git@github.com:OpenHFT/Spoon.git</developerConnection>
+    <tag>master</tag>
   </scm>
 
   <properties>
