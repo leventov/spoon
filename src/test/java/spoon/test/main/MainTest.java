@@ -1,5 +1,6 @@
 package spoon.test.main;
 
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.Assertion;
@@ -43,6 +44,7 @@ public class MainTest {
 		}
 	}
 
+	@Ignore
 	@Test
 	public void testTest() throws Exception {
 		// the tests should be spoonable

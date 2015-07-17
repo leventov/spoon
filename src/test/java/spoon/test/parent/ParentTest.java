@@ -7,6 +7,7 @@ import java.util.Stack;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import spoon.Launcher;
@@ -57,7 +58,8 @@ public class ParentTest {
 			Assert.fail();
 		}
 	}
- 
+
+	@Ignore
 	@Test
 	public void testParentSet() throws Exception {
 		CtClass<?> foo = factory.Package().get("spoon.test.parent")
