@@ -1,22 +1,31 @@
 package spoon.test.variable;
 
 import org.junit.Test;
+import spoon.Launcher;
 import spoon.reflect.code.CtArrayAccess;
 import spoon.reflect.code.CtArrayRead;
 import spoon.reflect.code.CtArrayWrite;
+import spoon.reflect.code.CtAssignment;
 import spoon.reflect.code.CtExpression;
 import spoon.reflect.code.CtFieldAccess;
 import spoon.reflect.code.CtFieldRead;
 import spoon.reflect.code.CtFieldWrite;
-import spoon.reflect.code.CtVariableRead;
+import spoon.reflect.code.CtRHSReceiver;
 import spoon.reflect.code.CtVariableAccess;
+import spoon.reflect.code.CtVariableRead;
 import spoon.reflect.code.CtVariableWrite;
+import spoon.reflect.declaration.CtPackage;
+import spoon.reflect.declaration.CtType;
 import spoon.reflect.factory.Factory;
 import spoon.reflect.visitor.Query;
 import spoon.reflect.visitor.filter.AbstractFilter;
+import spoon.reflect.visitor.filter.TypeFilter;
 import spoon.test.TestUtils;
+import spoon.test.main.MainTest;
 import spoon.test.variable.testclasses.ArrayAccessSample;
 import spoon.test.variable.testclasses.FieldAccessSample;
+import spoon.test.variable.testclasses.RHSSample;
+import spoon.test.variable.testclasses.StackedAssignmentSample;
 import spoon.test.variable.testclasses.VariableAccessSample;
 
 import java.util.List;
@@ -113,7 +122,7 @@ public class AccessTest {
 									  }
 								  });
 
-		assertEquals(1, arraysRead.size());
+		assertEquals(2, arraysRead.size());
 
 		final List<CtArrayWrite<?>> arraysWrite =
 				Query.getElements(factory,
@@ -137,6 +146,33 @@ public class AccessTest {
 									  }
 								  });
 
-		assertEquals(2, arraysAccess.size());
+		assertEquals(3, arraysAccess.size());
+	}
+
+	@Test
+	public void testStackedAssignments() throws Exception {
+		CtType<StackedAssignmentSample> type = TestUtils.buildClass(StackedAssignmentSample.class);
+		List<CtAssignment> l = type.getElements(new TypeFilter<>(CtAssignment.class));
+		assertEquals(3, l.size());
+	}
+
+	@Test
+	public void testRHS() throws Exception {
+		CtType<RHSSample> type = TestUtils.buildClass(RHSSample.class);
+		assertEquals(4,  type.getElements(new TypeFilter<>(CtRHSReceiver.class)).size());
+	}
+
+	@Test
+	public void testFieldWriteDeclaredInTheSuperclass() throws Exception {
+		final Launcher launcher = new Launcher();
+		launcher.run(new String[] {
+				"-i", "./src/test/resources/spoon/test/variable/Tacos.java",
+				"-o", "target/spooned/variable",
+				"--noclasspath",
+				"--compliance", "8",
+				"--level", "OFF"
+		});
+
+		MainTest.checkAssignmentContracts(launcher.getFactory().Package().getRootPackage());
 	}
 }

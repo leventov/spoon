@@ -1,16 +1,16 @@
-/* 
+/*
  * Spoon - http://spoon.gforge.inria.fr/
  * Copyright (C) 2006 INRIA Futurs <renaud.pawlak@inria.fr>
- * 
+ *
  * This software is governed by the CeCILL-C License under French law and
- * abiding by the rules of distribution of free software. You can use, modify 
- * and/or redistribute the software under the terms of the CeCILL-C license as 
- * circulated by CEA, CNRS and INRIA at http://www.cecill.info. 
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT 
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or 
+ * abiding by the rules of distribution of free software. You can use, modify
+ * and/or redistribute the software under the terms of the CeCILL-C license as
+ * circulated by CEA, CNRS and INRIA at http://www.cecill.info.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE. See the CeCILL-C License for more details.
- *  
+ *
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
@@ -25,75 +25,79 @@ import spoon.reflect.code.CtNewArray;
 import spoon.reflect.visitor.CtVisitor;
 import spoon.support.reflect.declaration.CtElementImpl;
 
-import static spoon.reflect.ModelElementContainerDefaultCapacities.NEW_ARRAY_DEFAULT_EXPRESSIONS_CONTAINER_DEFAULT_CAPACITY;
+import static spoon.reflect.ModelElementContainerDefaultCapacities
+		.NEW_ARRAY_DEFAULT_EXPRESSIONS_CONTAINER_DEFAULT_CAPACITY;
 
-public class CtNewArrayImpl<T> extends CtExpressionImpl<T> implements
-		CtNewArray<T> {
+public class CtNewArrayImpl<T> extends CtExpressionImpl<T> implements CtNewArray<T> {
 	private static final long serialVersionUID = 1L;
 
-	List<CtExpression<Integer>> dimensionExpressions = EMPTY_LIST();
+	List<CtExpression<Integer>> dimensionExpressions = emptyList();
 
-	List<CtExpression<?>> expressions = EMPTY_LIST();
+	List<CtExpression<?>> expressions = emptyList();
 
+	@Override
 	public void accept(CtVisitor visitor) {
 		visitor.visitCtNewArray(this);
 	}
 
+	@Override
 	public List<CtExpression<Integer>> getDimensionExpressions() {
 		return dimensionExpressions;
 	}
 
+	@Override
 	public List<CtExpression<?>> getElements() {
 		return expressions;
 	}
 
-	public void setDimensionExpressions(
-			List<CtExpression<Integer>> dimensionExpressions) {
+	@Override
+	public <C extends CtNewArray<T>> C setDimensionExpressions(List<CtExpression<Integer>> dimensionExpressions) {
 		this.dimensionExpressions.clear();
-		for (CtExpression expr : dimensionExpressions) {
+		for (CtExpression<Integer> expr : dimensionExpressions) {
 			addDimensionExpression(expr);
 		}
+		return (C) this;
 	}
 
 	@Override
-	public boolean addDimensionExpression(CtExpression<Integer> dimension) {
-		if (dimensionExpressions == CtElementImpl
-				.<CtExpression<Integer>> EMPTY_LIST()) {
+	public <C extends CtNewArray<T>> C addDimensionExpression(CtExpression<Integer> dimension) {
+		if (dimensionExpressions == CtElementImpl.<CtExpression<Integer>>emptyList()) {
 			dimensionExpressions = new ArrayList<CtExpression<Integer>>(
 					NEW_ARRAY_DEFAULT_EXPRESSIONS_CONTAINER_DEFAULT_CAPACITY);
 		}
 		dimension.setParent(this);
-		return dimensionExpressions.add(dimension);
+		dimensionExpressions.add(dimension);
+		return (C) this;
 	}
 
 	@Override
 	public boolean removeDimensionExpression(CtExpression<Integer> dimension) {
-		return dimensionExpressions !=
-				CtElementImpl.<CtExpression<Integer>>EMPTY_LIST() &&
-				dimensionExpressions.remove(dimension);
-	}
-
-	public void setElements(List<CtExpression<?>> expressions) {
-		this.expressions.clear();
-		for (CtExpression expr: expressions) {
-			addElement(expr);
-		}
+		return dimensionExpressions
+				!= CtElementImpl.<CtExpression<Integer>>emptyList()
+				&& dimensionExpressions.remove(dimension);
 	}
 
 	@Override
-	public boolean addElement(CtExpression<?> expression) {
-		if (expressions == CtElementImpl.<CtExpression<?>> EMPTY_LIST()) {
+	public <C extends CtNewArray<T>> C setElements(List<CtExpression<?>> expressions) {
+		this.expressions.clear();
+		for (CtExpression<?> expr : expressions) {
+			addElement(expr);
+		}
+		return (C) this;
+	}
+
+	@Override
+	public <C extends CtNewArray<T>> C addElement(CtExpression<?> expression) {
+		if (expressions == CtElementImpl.<CtExpression<?>>emptyList()) {
 			this.expressions = new ArrayList<CtExpression<?>>();
 		}
 		expression.setParent(this);
-		return expressions.add(expression);
+		expressions.add(expression);
+		return (C) this;
 	}
 
 	@Override
 	public boolean removeElement(CtExpression<?> expression) {
-		return expressions != CtElementImpl.<CtExpression<?>>EMPTY_LIST() &&
-				expressions.remove(expression);
+		return expressions != CtElementImpl.<CtExpression<?>>emptyList() && expressions.remove(expression);
 	}
-
-
 }

@@ -1,16 +1,16 @@
-/* 
+/*
  * Spoon - http://spoon.gforge.inria.fr/
  * Copyright (C) 2006 INRIA Futurs <renaud.pawlak@inria.fr>
- * 
+ *
  * This software is governed by the CeCILL-C License under French law and
- * abiding by the rules of distribution of free software. You can use, modify 
- * and/or redistribute the software under the terms of the CeCILL-C license as 
- * circulated by CEA, CNRS and INRIA at http://www.cecill.info. 
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT 
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or 
+ * abiding by the rules of distribution of free software. You can use, modify
+ * and/or redistribute the software under the terms of the CeCILL-C license as
+ * circulated by CEA, CNRS and INRIA at http://www.cecill.info.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE. See the CeCILL-C License for more details.
- *  
+ *
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
@@ -33,61 +33,71 @@ import static spoon.reflect.ModelElementContainerDefaultCapacities.CATCH_CASES_C
 public class CtTryImpl extends CtStatementImpl implements CtTry {
 	private static final long serialVersionUID = 1L;
 
-	List<CtCatch> catchers = EMPTY_LIST();
+	CtBlock<?> body;
 
-	public List<CtCatch> getCatchers() {
-		return catchers;
-	}
+	List<CtCatch> catchers = emptyList();
 
-	public void setCatchers(List<CtCatch> catchers) {
-		this.catchers.clear();
-		for (CtCatch c : catchers) {
-			addCatcher(c);
-		}
-	}
+	CtBlock<?> finalizer;
 
 	@Override
-	public boolean addCatcher(CtCatch catcher) {
-		if (catchers == CtElementImpl.<CtCatch> EMPTY_LIST()) {
-			catchers = new ArrayList<CtCatch>(
-					CATCH_CASES_CONTAINER_DEFAULT_CAPACITY);
-		}
-		catcher.setParent(this);
-		return catchers.add(catcher);
-	}
-
-	@Override
-	public boolean removeCatcher(CtCatch catcher) {
-		return catchers != CtElementImpl.<CtCatch>EMPTY_LIST() &&
-				catchers.remove(catcher);
-	}
-
 	public void accept(CtVisitor visitor) {
 		visitor.visitCtTry(this);
 	}
 
-	CtBlock<?> finalizer;
+	@Override
+	public List<CtCatch> getCatchers() {
+		return catchers;
+	}
 
+	@Override
+	public <T extends CtTry> T setCatchers(List<CtCatch> catchers) {
+		this.catchers.clear();
+		for (CtCatch c : catchers) {
+			addCatcher(c);
+		}
+		return (T) this;
+	}
+
+	@Override
+	public <T extends CtTry> T addCatcher(CtCatch catcher) {
+		if (catchers == CtElementImpl.<CtCatch>emptyList()) {
+			catchers = new ArrayList<CtCatch>(CATCH_CASES_CONTAINER_DEFAULT_CAPACITY);
+		}
+		catcher.setParent(this);
+		catchers.add(catcher);
+		return (T) this;
+	}
+
+	@Override
+	public boolean removeCatcher(CtCatch catcher) {
+		return catchers != CtElementImpl.<CtCatch>emptyList() && catchers.remove(catcher);
+	}
+
+	@Override
 	public CtBlock<?> getFinalizer() {
 		return finalizer;
 	}
 
-	public void setFinalizer(CtBlock<?> finalizer) {
+	@Override
+	public <T extends CtTry> T setFinalizer(CtBlock<?> finalizer) {
 		finalizer.setParent(this);
 		this.finalizer = finalizer;
+		return (T) this;
 	}
 
-	CtBlock<?> body;
-
+	@Override
 	public CtBlock<?> getBody() {
 		return body;
 	}
 
-	public void setBody(CtBlock<?> body) {
+	@Override
+	public <T extends CtTry> T setBody(CtBlock<?> body) {
 		body.setParent(this);
 		this.body = body;
+		return (T) this;
 	}
 
+	@Override
 	public Void S() {
 		return null;
 	}

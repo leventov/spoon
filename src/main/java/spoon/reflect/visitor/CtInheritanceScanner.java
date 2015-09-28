@@ -1,16 +1,16 @@
-/* 
+/*
  * Spoon - http://spoon.gforge.inria.fr/
  * Copyright (C) 2006 INRIA Futurs <renaud.pawlak@inria.fr>
- * 
+ *
  * This software is governed by the CeCILL-C License under French law and
- * abiding by the rules of distribution of free software. You can use, modify 
- * and/or redistribute the software under the terms of the CeCILL-C license as 
- * circulated by CEA, CNRS and INRIA at http://www.cecill.info. 
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT 
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or 
+ * abiding by the rules of distribution of free software. You can use, modify
+ * and/or redistribute the software under the terms of the CeCILL-C license as
+ * circulated by CEA, CNRS and INRIA at http://www.cecill.info.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE. See the CeCILL-C License for more details.
- *  
+ *
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
@@ -60,7 +60,6 @@ import spoon.reflect.code.CtStatementList;
 import spoon.reflect.code.CtSuperAccess;
 import spoon.reflect.code.CtSwitch;
 import spoon.reflect.code.CtSynchronized;
-import spoon.reflect.code.CtTargetedAccess;
 import spoon.reflect.code.CtTargetedExpression;
 import spoon.reflect.code.CtThisAccess;
 import spoon.reflect.code.CtThrow;
@@ -298,7 +297,6 @@ public abstract class CtInheritanceScanner implements CtVisitor {
 
 	public <T> void visitCtFieldAccess(CtFieldAccess<T> f) {
 		visitCtVariableRead(f);
-		scanCtTargetedAccess(f);
 		scanCtTargetedExpression(f);
 	}
 
@@ -313,7 +311,6 @@ public abstract class CtInheritanceScanner implements CtVisitor {
 	}
 
 	public <T> void visitCtSuperAccess(CtSuperAccess<T> f) {
-		scanCtTargetedAccess(f);
 		visitCtVariableRead(f);
 		scanCtTargetedExpression(f);
 	}
@@ -351,7 +348,7 @@ public abstract class CtInheritanceScanner implements CtVisitor {
 			CtAnnotationType<A> e) {
 		scanCtType(e);
 		scanCtNamedElement(e);
-				scanCtTypeInformation(e);
+		scanCtTypeInformation(e);
 		scanCtTypeMember(e);
 		scanCtGenericElement(e);
 		scanCtModifiable(e);
@@ -509,9 +506,6 @@ public abstract class CtInheritanceScanner implements CtVisitor {
 		scanCtVisitable(e);
 	}
 
-	public <T> void scanCtTargetedAccess(CtTargetedAccess<T> targetedAccess) {
-	}
-
 	public <T> void visitCtThisAccess(CtThisAccess<T> e) {
 		scanCtTargetedExpression(e);
 		scanCtExpression(e);
@@ -639,6 +633,7 @@ public abstract class CtInheritanceScanner implements CtVisitor {
 		scanCtTargetedExpression(e);
 		scanCtAbstractInvocation(e);
 		scanCtStatement(e);
+		scanCtGenericElementReference(e);
 		scanCtExpression(e);
 		scanCtElement(e);
 		scanCtCodeElement(e);
@@ -662,7 +657,8 @@ public abstract class CtInheritanceScanner implements CtVisitor {
 	}
 
 	@Override
-	public <T, E extends CtExpression<?>> void visitCtExecutableReferenceExpression(CtExecutableReferenceExpression<T, E> e) {
+	public <T, E extends CtExpression<?>> void visitCtExecutableReferenceExpression(
+			CtExecutableReferenceExpression<T, E> e) {
 		scanCtTargetedExpression(e);
 		scanCtExpression(e);
 		scanCtCodeElement(e);
@@ -750,6 +746,7 @@ public abstract class CtInheritanceScanner implements CtVisitor {
 	}
 
 	public void visitCtTypeParameter(CtTypeParameter e) {
+		scanCtNamedElement(e);
 		scanCtElement(e);
 		scanCtVisitable(e);
 	}

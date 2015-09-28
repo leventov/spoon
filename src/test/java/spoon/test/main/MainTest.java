@@ -6,7 +6,14 @@ import org.junit.Test;
 import org.junit.contrib.java.lang.system.Assertion;
 import org.junit.contrib.java.lang.system.ExpectedSystemExit;
 import spoon.Launcher;
+import spoon.reflect.code.CtArrayWrite;
+import spoon.reflect.code.CtAssignment;
+import spoon.reflect.code.CtExpression;
+import spoon.reflect.code.CtFieldWrite;
+import spoon.reflect.code.CtVariableWrite;
+import spoon.reflect.declaration.CtElement;
 import spoon.reflect.declaration.CtPackage;
+import spoon.reflect.visitor.filter.TypeFilter;
 import spoon.test.parent.ParentTest;
 
 import java.io.ByteArrayOutputStream;
@@ -34,27 +41,54 @@ public class MainTest {
 		String systemClassPath = classpath.substring(0, classpath.length() - 1);
 
 		Launcher launcher = new Launcher();
-		
-		launcher.run(new String[] { "-i", "src/main/java", "-o",
-				"target/spooned", "--source-classpath",
-				systemClassPath, "--compile", "--compliance", "7" });
-		
-		for(CtPackage pack: launcher.getFactory().Package().getAllRoots()) {
-			ParentTest.checkParentContract(pack);
+
+		launcher.run(new String[] {
+				"-i", "src/main/java",
+				"-o", "target/spooned",
+				"--destination","target/spooned-build",
+				"--source-classpath", systemClassPath,
+				"--compile",
+				"--compliance", "7",
+				"--level", "OFF"
+		});
+
+		checkGenericContracts(launcher.getFactory().Package().getRootPackage());
+	}
+
+	public void checkGenericContracts(CtPackage pack) {
+		// parent
+		ParentTest.checkParentContract(pack);
+
+		// assignments
+		checkAssignmentContracts(pack);
+	}
+
+	public static void checkAssignmentContracts(CtElement pack) {
+		for (CtAssignment assign : pack.getElements(new TypeFilter<CtAssignment>(
+				CtAssignment.class))) {
+			CtExpression assigned = assign.getAssigned();
+			if (!(assigned instanceof CtFieldWrite
+					|| assigned instanceof CtVariableWrite || assigned instanceof CtArrayWrite)) {
+				throw new AssertionError("AssignmentContract error:" + assign.getPosition()+"\n"+assign.toString()+"\nAssigned is "+assigned.getClass());
+			}
 		}
+
 	}
 
 	@Ignore
 	@Test
 	public void testTest() throws Exception {
 		// the tests should be spoonable
-		Launcher launcher = new Launcher();		
-		launcher.run(new String[] { "-i", "src/test/java", "-o",
-				"target/spooned", "--noclasspath", "--compliance", "8" });
-		
-		for(CtPackage pack: launcher.getFactory().Package().getAllRoots()) {
-			ParentTest.checkParentContract(pack);
-		}
+		Launcher launcher = new Launcher();
+		launcher.run(new String[] {
+				"-i", "src/test/java",
+				"-o", "target/spooned",
+				"--noclasspath",
+				"--compliance", "8",
+				"--level", "OFF"
+		});
+
+		checkGenericContracts(launcher.getFactory().Package().getRootPackage());
 	}
 
 	@Test
@@ -71,6 +105,7 @@ public class MainTest {
 		spoon.Launcher.main(new String[] {
 				"-i", "src/test/resources/no-copy-resources/",
 				"-o", "target/spooned-with-resources",
+				"--destination","target/spooned-build",
 				"--source-classpath", systemClassPath, "--compile" });
 
 		assertTrue(new File("src/test/resources/no-copy-resources/package.html").exists());
@@ -95,8 +130,9 @@ public class MainTest {
 		spoon.Launcher.main(new String[] {
 				"-i", "src/test/resources/no-copy-resources",
 				"-o", "target/spooned-without-resources",
+				"--destination","target/spooned-build",
 				"--source-classpath", systemClassPath, "--compile",
-				"-r"});
+				"-r" });
 
 		assertTrue(new File("src/test/resources/no-copy-resources/package.html").exists());
 		assertFalse(new File("target/spooned-without-resources/package.html").exists());

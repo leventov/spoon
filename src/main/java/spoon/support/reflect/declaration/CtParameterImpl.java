@@ -1,63 +1,62 @@
-/* 
+/*
  * Spoon - http://spoon.gforge.inria.fr/
  * Copyright (C) 2006 INRIA Futurs <renaud.pawlak@inria.fr>
- * 
+ *
  * This software is governed by the CeCILL-C License under French law and
- * abiding by the rules of distribution of free software. You can use, modify 
- * and/or redistribute the software under the terms of the CeCILL-C license as 
- * circulated by CEA, CNRS and INRIA at http://www.cecill.info. 
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT 
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or 
+ * abiding by the rules of distribution of free software. You can use, modify
+ * and/or redistribute the software under the terms of the CeCILL-C license as
+ * circulated by CEA, CNRS and INRIA at http://www.cecill.info.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE. See the CeCILL-C License for more details.
- *  
+ *
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
 
 package spoon.support.reflect.declaration;
 
+import java.util.EnumSet;
+import java.util.Set;
+
 import spoon.reflect.code.CtExpression;
-import spoon.reflect.declaration.CtElement;
 import spoon.reflect.declaration.CtExecutable;
+import spoon.reflect.declaration.CtModifiable;
 import spoon.reflect.declaration.CtParameter;
+import spoon.reflect.declaration.CtTypedElement;
+import spoon.reflect.declaration.CtVariable;
 import spoon.reflect.declaration.ModifierKind;
-import spoon.reflect.declaration.ParentNotInitializedException;
 import spoon.reflect.reference.CtParameterReference;
 import spoon.reflect.reference.CtTypeReference;
 import spoon.reflect.visitor.CtVisitor;
 
-import java.util.EnumSet;
-import java.util.Set;
-import java.util.TreeSet;
-
 /**
  * The implementation for {@link spoon.reflect.declaration.CtParameter}.
- * 
+ *
  * @author Renaud Pawlak
  */
 public class CtParameterImpl<T> extends CtNamedElementImpl implements CtParameter<T> {
 	private static final long serialVersionUID = 1L;
 
-	CtExpression<T> defaultExpression;
-
 	CtTypeReference<T> type;
 
 	boolean varArgs = false;
 
-	Set<ModifierKind> modifiers = CtElementImpl.EMPTY_SET();
+	Set<ModifierKind> modifiers = CtElementImpl.emptySet();
 
 	public CtParameterImpl() {
 		super();
 	}
 
+	@Override
 	public void accept(CtVisitor v) {
 		v.visitCtParameter(this);
 	}
 
-    @Override
+	@Override
 	public CtExpression<T> getDefaultExpression() {
-		return defaultExpression;
+		return null;
 	}
 
 	@Override
@@ -65,25 +64,31 @@ public class CtParameterImpl<T> extends CtNamedElementImpl implements CtParamete
 		return getFactory().Executable().createParameterReference(this);
 	}
 
+	@Override
 	public CtTypeReference<T> getType() {
 		return type;
 	}
 
-	public void setDefaultExpression(CtExpression<T> defaultExpression) {
-		defaultExpression.setParent(this);
-		this.defaultExpression = defaultExpression;
+	@Override
+	public <C extends CtVariable<T>> C setDefaultExpression(CtExpression<T> defaultExpression) {
+		throw new UnsupportedOperationException();
 	}
 
-	public void setType(CtTypeReference<T> type) {
+	@Override
+	public <C extends CtTypedElement> C setType(CtTypeReference<T> type) {
 		this.type = type;
+		return (C) this;
 	}
 
+	@Override
 	public boolean isVarArgs() {
 		return varArgs;
 	}
 
-	public void setVarArgs(boolean varArgs) {
+	@Override
+	public <C extends CtParameter<T>> C setVarArgs(boolean varArgs) {
 		this.varArgs = varArgs;
+		return (C) this;
 	}
 
 	@Override
@@ -97,16 +102,18 @@ public class CtParameterImpl<T> extends CtNamedElementImpl implements CtParamete
 	}
 
 	@Override
-	public void setModifiers(Set<ModifierKind> modifiers) {
+	public <C extends CtModifiable> C setModifiers(Set<ModifierKind> modifiers) {
 		this.modifiers = modifiers;
+		return (C) this;
 	}
 
 	@Override
-	public boolean addModifier(ModifierKind modifier) {
-		if (modifiers == CtElementImpl.<ModifierKind> EMPTY_SET()) {
+	public <C extends CtModifiable> C addModifier(ModifierKind modifier) {
+		if (modifiers == CtElementImpl.<ModifierKind>emptySet()) {
 			this.modifiers = EnumSet.noneOf(ModifierKind.class);
 		}
-		return modifiers.add(modifier);
+		modifiers.add(modifier);
+		return (C) this;
 	}
 
 	@Override
@@ -115,30 +122,34 @@ public class CtParameterImpl<T> extends CtNamedElementImpl implements CtParamete
 	}
 
 	@Override
-	public void setVisibility(ModifierKind visibility) {
-		if (modifiers == CtElementImpl.<ModifierKind> EMPTY_SET()) {
+	public <C extends CtModifiable> C setVisibility(ModifierKind visibility) {
+		if (modifiers == CtElementImpl.<ModifierKind>emptySet()) {
 			this.modifiers = EnumSet.noneOf(ModifierKind.class);
 		}
 		getModifiers().remove(ModifierKind.PUBLIC);
 		getModifiers().remove(ModifierKind.PROTECTED);
 		getModifiers().remove(ModifierKind.PRIVATE);
 		getModifiers().add(visibility);
+		return (C) this;
 	}
 
 	@Override
 	public ModifierKind getVisibility() {
-		if (getModifiers().contains(ModifierKind.PUBLIC))
+		if (getModifiers().contains(ModifierKind.PUBLIC)) {
 			return ModifierKind.PUBLIC;
-		if (getModifiers().contains(ModifierKind.PROTECTED))
+		}
+		if (getModifiers().contains(ModifierKind.PROTECTED)) {
 			return ModifierKind.PROTECTED;
-		if (getModifiers().contains(ModifierKind.PRIVATE))
+		}
+		if (getModifiers().contains(ModifierKind.PRIVATE)) {
 			return ModifierKind.PRIVATE;
+		}
 		return null;
 	}
-	
+
 	@Override
 	public CtExecutable<?> getParent() {
 		return (CtExecutable<?>) super.getParent();
 	}
-	
+
 }

@@ -1,16 +1,16 @@
-/* 
+/*
  * Spoon - http://spoon.gforge.inria.fr/
  * Copyright (C) 2006 INRIA Futurs <renaud.pawlak@inria.fr>
- * 
+ *
  * This software is governed by the CeCILL-C License under French law and
- * abiding by the rules of distribution of free software. You can use, modify 
- * and/or redistribute the software under the terms of the CeCILL-C license as 
- * circulated by CEA, CNRS and INRIA at http://www.cecill.info. 
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT 
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or 
+ * abiding by the rules of distribution of free software. You can use, modify
+ * and/or redistribute the software under the terms of the CeCILL-C license as
+ * circulated by CEA, CNRS and INRIA at http://www.cecill.info.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE. See the CeCILL-C License for more details.
- *  
+ *
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
@@ -20,29 +20,28 @@ package spoon.reflect.declaration;
 import java.util.List;
 import java.util.Set;
 
-import spoon.reflect.reference.CtReference;
 import spoon.reflect.reference.CtTypeReference;
 
 /**
  * This abstract element defines a super-type for classes and interfaces, which
  * can declare methods.
+ *
+ * The type parameter T refers to the actual class that this type represents.
  */
 public interface CtType<T> extends CtNamedElement, CtTypeInformation, CtTypeMember, CtGenericElement {
+	/**
+	 * The string separator in a Java innertype qualified name.
+	 */
+	String INNERTTYPE_SEPARATOR = "$";
 
 	/**
 	 * Returns the types used by this type.
 	 *
 	 * @param includeSamePackage
-	 *            set to true if the method should return also the types located
-	 *            in the same package as the current type
+	 * 		set to true if the method should return also the types located
+	 * 		in the same package as the current type
 	 */
 	Set<CtTypeReference<?>> getUsedTypes(boolean includeSamePackage);
-
-
-	/**
-	 * The string separator in a Java innertype qualified name.
-	 */
-	public static final String INNERTTYPE_SEPARATOR = "$";
 
 	/**
 	 * Returns the actual runtime class if exists.
@@ -80,7 +79,8 @@ public interface CtType<T> extends CtNamedElement, CtTypeInformation, CtTypeMemb
 	 */
 	CtPackage getPackage();
 
-	/** Returns the corresponding type reference.
+	/**
+	 * Returns the corresponding type reference.
 	 *
 	 * Overrides the return type.
 	 */
@@ -98,7 +98,7 @@ public interface CtType<T> extends CtNamedElement, CtTypeInformation, CtTypeMemb
 	 * @param field
 	 * @return <tt>true</tt> if this element changed as a result of the call
 	 */
-	<F> boolean addField(CtField<F> field);
+	<F, C extends CtType<T>> C addField(CtField<F> field);
 
 	/**
 	 * remove a Field
@@ -114,7 +114,7 @@ public interface CtType<T> extends CtNamedElement, CtTypeInformation, CtTypeMemb
 	 * @param nestedType
 	 * @return <tt>true</tt> if this element changed as a result of the call
 	 */
-	<N> boolean addNestedType(CtType<N> nestedType);
+	<N, C extends CtType<T>> C addNestedType(CtType<N> nestedType);
 
 	/**
 	 * Remove a nested type.
@@ -132,25 +132,24 @@ public interface CtType<T> extends CtNamedElement, CtTypeInformation, CtTypeMemb
 	 * @see spoon.reflect.code.CtCodeSnippetStatement
 	 */
 	void compileAndReplaceSnippets();
-	
+
 	/**
 	 * Return all the accessible methods (concrete and abstract) for this type.
-	 * 
-	 *  The recursion stops when the super-type/super-interface is not in the model.
+	 *
+	 * The recursion stops when the super-type/super-interface is not in the model.
 	 */
 	Set<CtMethod<?>> getAllMethods();
 
 	/**
 	 * Gets a method from its return type, name, and parameter types.
-	 * 
+	 *
 	 * @return null if does not exit
 	 */
-	<R> CtMethod<R> getMethod(CtTypeReference<R> returnType, String name,
-			CtTypeReference<?>... parameterTypes);
+	<R> CtMethod<R> getMethod(CtTypeReference<R> returnType, String name, CtTypeReference<?>... parameterTypes);
 
 	/**
 	 * Gets a method from its name and parameter types.
-	 * 
+	 *
 	 * @return null if does not exit
 	 */
 	<R> CtMethod<R> getMethod(String name, CtTypeReference<?>... parameterTypes);
@@ -172,17 +171,16 @@ public interface CtType<T> extends CtNamedElement, CtTypeInformation, CtTypeMemb
 	 * interface and that have the given name.
 	 */
 	List<CtMethod<?>> getMethodsByName(String name);
-	
 
 	/**
 	 * Sets the methods of this type.
 	 */
-	void setMethods(Set<CtMethod<?>> methods);
+	<C extends CtType<T>> C setMethods(Set<CtMethod<?>> methods);
 
 	/**
 	 * Adds a method to this type.
 	 */
-	<M> boolean addMethod(CtMethod<M> method);
+	<M, C extends CtType<T>> C addMethod(CtMethod<M> method);
 
 	/**
 	 * Removes a method from this type.
@@ -192,17 +190,15 @@ public interface CtType<T> extends CtNamedElement, CtTypeInformation, CtTypeMemb
 	/**
 	 * Sets the super interfaces of this type.
 	 */
-	void setSuperInterfaces(Set<CtTypeReference<?>> interfaces);
+	<C extends CtType<T>> C setSuperInterfaces(Set<CtTypeReference<?>> interfaces);
 
 	/**
-	 * 
 	 * @param interfac
 	 * @return <tt>true</tt> if this element changed as a result of the call
 	 */
-	<S> boolean addSuperInterface(CtTypeReference<S> interfac);
+	<S, C extends CtType<T>> C addSuperInterface(CtTypeReference<S> interfac);
 
 	/**
-	 * 
 	 * @param interfac
 	 * @return <tt>true</tt> if this element changed as a result of the call
 	 */

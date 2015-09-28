@@ -26,10 +26,9 @@ import spoon.reflect.factory.Factory;
 import spoon.reflect.visitor.CtScanner;
 import spoon.reflect.visitor.filter.NameFilter;
 import spoon.reflect.visitor.filter.TypeFilter;
-import spoon.support.reflect.declaration.CtPackageImpl;
 
 public class ParentTest {
-    
+
 	Factory factory;
 
 	@Before
@@ -64,9 +63,8 @@ public class ParentTest {
 	public void testParentSet() throws Exception {
 		CtClass<?> foo = factory.Package().get("spoon.test.parent")
 				.getType("Foo");
-		
-		CtMethod<?> fooMethod = foo.getElements(
-				new NameFilter<CtMethod<?>>("foo")).get(0);
+
+		CtMethod<?> fooMethod = foo.getMethodsByName("foo").get(0);
 		assertEquals("foo", fooMethod.getSimpleName());
 
 		CtLocalVariable<?> localVar = (CtLocalVariable<?>) fooMethod.getBody()
@@ -79,13 +77,13 @@ public class ParentTest {
 		CtLiteral<?> newLit = factory.Code().createLiteral(0);
 		localVar.setDefaultExpression((CtExpression) newLit);
 		assertEquals(localVar, newLit.getParent());
-		
+
 		CtLiteral<?> newLit2 = factory.Code().createLiteral(1);
 		assignment.setAssignment((CtExpression) newLit2);
 		assertEquals(assignment, newLit2.getParent());
-				
+
 	}
-	
+
 	@Test
 	public void testParentPackage() throws Exception {
 		// addType should set Parent
@@ -103,7 +101,7 @@ public class ParentTest {
 			// there is always one parent
 			Assert.assertNotNull("no parent for "+elem.getClass()+"-"+elem.getPosition(), elem.getParent());
 		}
-		
+
 		// the scanner and the parent are in correspondence
 		new CtScanner() {
 			Stack<CtElement> elementStack = new Stack<CtElement>();

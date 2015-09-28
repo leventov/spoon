@@ -17,17 +17,21 @@
 
 package spoon.support.reflect.code;
 
+import java.util.EnumSet;
+import java.util.Set;
+
 import spoon.reflect.code.CtExpression;
 import spoon.reflect.code.CtLocalVariable;
+import spoon.reflect.code.CtRHSReceiver;
+import spoon.reflect.declaration.CtModifiable;
+import spoon.reflect.declaration.CtNamedElement;
+import spoon.reflect.declaration.CtTypedElement;
+import spoon.reflect.declaration.CtVariable;
 import spoon.reflect.declaration.ModifierKind;
 import spoon.reflect.reference.CtLocalVariableReference;
 import spoon.reflect.reference.CtTypeReference;
 import spoon.reflect.visitor.CtVisitor;
 import spoon.support.reflect.declaration.CtElementImpl;
-
-import java.util.EnumSet;
-import java.util.Set;
-import java.util.TreeSet;
 
 public class CtLocalVariableImpl<T> extends CtStatementImpl implements CtLocalVariable<T> {
 	private static final long serialVersionUID = 1L;
@@ -38,40 +42,52 @@ public class CtLocalVariableImpl<T> extends CtStatementImpl implements CtLocalVa
 
 	CtTypeReference<T> type;
 
-	Set<ModifierKind> modifiers = CtElementImpl.EMPTY_SET();
+	Set<ModifierKind> modifiers = CtElementImpl.emptySet();
 
+	@Override
 	public void accept(CtVisitor visitor) {
 		visitor.visitCtLocalVariable(this);
 	}
 
+	@Override
 	public CtExpression<T> getDefaultExpression() {
 		return defaultExpression;
 	}
 
+	@Override
 	public CtLocalVariableReference<T> getReference() {
 		return getFactory().Code().createLocalVariableReference(this);
 	}
 
+	@Override
 	public String getSimpleName() {
 		return name;
 	}
 
+	@Override
 	public CtTypeReference<T> getType() {
 		return type;
 	}
 
-	public void setDefaultExpression(CtExpression<T> defaultExpression) {
-		if (defaultExpression != null)
+	@Override
+	public <C extends CtVariable<T>> C setDefaultExpression(CtExpression<T> defaultExpression) {
+		if (defaultExpression != null) {
 			defaultExpression.setParent(this);
+		}
 		this.defaultExpression = defaultExpression;
+		return (C) this;
 	}
 
-	public void setSimpleName(String simpleName) {
+	@Override
+	public <C extends CtNamedElement> C setSimpleName(String simpleName) {
 		this.name = simpleName;
+		return (C) this;
 	}
 
-	public void setType(CtTypeReference<T> type) {
+	@Override
+	public <C extends CtTypedElement> C setType(CtTypeReference<T> type) {
 		this.type = type;
+		return (C) this;
 	}
 
 	@Override
@@ -85,16 +101,18 @@ public class CtLocalVariableImpl<T> extends CtStatementImpl implements CtLocalVa
 	}
 
 	@Override
-	public void setModifiers(Set<ModifierKind> modifiers) {
+	public <C extends CtModifiable> C setModifiers(Set<ModifierKind> modifiers) {
 		this.modifiers = modifiers;
+		return (C) this;
 	}
 
 	@Override
-	public boolean addModifier(ModifierKind modifier) {
-		if (modifiers == CtElementImpl.<ModifierKind> EMPTY_SET()) {
+	public <C extends CtModifiable> C addModifier(ModifierKind modifier) {
+		if (modifiers == CtElementImpl.<ModifierKind>emptySet()) {
 			this.modifiers = EnumSet.noneOf(ModifierKind.class);
 		}
-		return modifiers.add(modifier);
+		modifiers.add(modifier);
+		return (C) this;
 	}
 
 	@Override
@@ -103,24 +121,39 @@ public class CtLocalVariableImpl<T> extends CtStatementImpl implements CtLocalVa
 	}
 
 	@Override
-	public void setVisibility(ModifierKind visibility) {
-		if (modifiers == CtElementImpl.<ModifierKind> EMPTY_SET()) {
+	public <C extends CtModifiable> C setVisibility(ModifierKind visibility) {
+		if (modifiers == CtElementImpl.<ModifierKind>emptySet()) {
 			this.modifiers = EnumSet.noneOf(ModifierKind.class);
 		}
 		getModifiers().remove(ModifierKind.PUBLIC);
 		getModifiers().remove(ModifierKind.PROTECTED);
 		getModifiers().remove(ModifierKind.PRIVATE);
 		getModifiers().add(visibility);
+		return (C) this;
 	}
 
 	@Override
 	public ModifierKind getVisibility() {
-		if (getModifiers().contains(ModifierKind.PUBLIC))
+		if (getModifiers().contains(ModifierKind.PUBLIC)) {
 			return ModifierKind.PUBLIC;
-		if (getModifiers().contains(ModifierKind.PROTECTED))
+		}
+		if (getModifiers().contains(ModifierKind.PROTECTED)) {
 			return ModifierKind.PROTECTED;
-		if (getModifiers().contains(ModifierKind.PRIVATE))
+		}
+		if (getModifiers().contains(ModifierKind.PRIVATE)) {
 			return ModifierKind.PRIVATE;
+		}
 		return null;
+	}
+
+	@Override
+	public CtExpression<T> getAssignment() {
+		return getDefaultExpression();
+	}
+
+	@Override
+	public <C extends CtRHSReceiver<T>> C setAssignment(CtExpression<T> assignment) {
+		setDefaultExpression(assignment);
+		return (C) this;
 	}
 }

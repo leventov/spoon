@@ -1,16 +1,16 @@
-/* 
+/*
  * Spoon - http://spoon.gforge.inria.fr/
  * Copyright (C) 2006 INRIA Futurs <renaud.pawlak@inria.fr>
- * 
+ *
  * This software is governed by the CeCILL-C License under French law and
- * abiding by the rules of distribution of free software. You can use, modify 
- * and/or redistribute the software under the terms of the CeCILL-C license as 
- * circulated by CEA, CNRS and INRIA at http://www.cecill.info. 
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT 
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or 
+ * abiding by the rules of distribution of free software. You can use, modify
+ * and/or redistribute the software under the terms of the CeCILL-C license as
+ * circulated by CEA, CNRS and INRIA at http://www.cecill.info.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE. See the CeCILL-C License for more details.
- *  
+ *
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
@@ -31,50 +31,46 @@ public interface CtBlock<R> extends CtStatement, CtStatementList, TemplateParame
 	/**
 	 * Inserts the given statement at the beginning of the block.
 	 */
-	void insertBegin(CtStatement statement);
+	<T extends CtBlock<R>> T insertBegin(CtStatement statement);
 
 	/**
 	 * Inserts the given statement list at the beginning of the block.
 	 */
-	void insertBegin(CtStatementList statements);
+	<T extends CtBlock<R>> T insertBegin(CtStatementList statements);
 
 	/**
 	 * Inserts the given statement at the end of the block.
 	 */
-	void insertEnd(CtStatement statement);
+	<T extends CtBlock<R>> T insertEnd(CtStatement statement);
 
 	/**
 	 * Inserts the given statements at the end of the block.
 	 */
-	void insertEnd(CtStatementList statements);
+	<T extends CtBlock<R>> T insertEnd(CtStatementList statements);
 
 	/**
 	 * Inserts the given statement before a set of insertion points given by a
 	 * filter.
 	 */
-	void insertBefore(Filter<? extends CtStatement> insertionPoints,
-			CtStatement statement);
+	<T extends CtBlock<R>> T insertBefore(Filter<? extends CtStatement> insertionPoints, CtStatement statement);
 
 	/**
 	 * Inserts the given statement list before a set of insertion points given
 	 * by a filter.
 	 */
-	void insertBefore(Filter<? extends CtStatement> insertionPoints,
-			CtStatementList statements);
+	<T extends CtBlock<R>> T insertBefore(Filter<? extends CtStatement> insertionPoints, CtStatementList statements);
 
 	/**
 	 * Inserts the given statement after a set of insertion points given by a
 	 * filter.
 	 */
-	void insertAfter(Filter<? extends CtStatement> insertionPoints,
-			CtStatement statement);
+	<T extends CtBlock<R>> T insertAfter(Filter<? extends CtStatement> insertionPoints, CtStatement statement);
 
 	/**
 	 * Inserts the given statement list after a set of insertion points given by
 	 * a filter.
 	 */
-	void insertAfter(Filter<? extends CtStatement> insertionPoints,
-			CtStatementList statements);
+	<T extends CtBlock<R>> T insertAfter(Filter<? extends CtStatement> insertionPoints, CtStatementList statements);
 
 	/**
 	 * Gets the ith statement of this block.
@@ -87,13 +83,7 @@ public interface CtBlock<R> extends CtStatement, CtStatementList, TemplateParame
 	<T extends CtStatement> T getLastStatement();
 
 	/**
-	 * Adds a statement to this block.
+	 * Replaces this element by another one.
 	 */
-	void addStatement(CtStatement statement);
-
-	/**
-	 * Removes a statement from this block.
-	 */
-	void removeStatement(CtStatement statement);
-
+	<T extends R> void replace(CtBlock<T> element);
 }

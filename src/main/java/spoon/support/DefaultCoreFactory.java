@@ -1,34 +1,24 @@
-/* 
+/*
  * Spoon - http://spoon.gforge.inria.fr/
  * Copyright (C) 2006 INRIA Futurs <renaud.pawlak@inria.fr>
- * 
+ *
  * This software is governed by the CeCILL-C License under French law and
- * abiding by the rules of distribution of free software. You can use, modify 
- * and/or redistribute the software under the terms of the CeCILL-C license as 
- * circulated by CEA, CNRS and INRIA at http://www.cecill.info. 
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT 
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or 
+ * abiding by the rules of distribution of free software. You can use, modify
+ * and/or redistribute the software under the terms of the CeCILL-C license as
+ * circulated by CEA, CNRS and INRIA at http://www.cecill.info.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE. See the CeCILL-C License for more details.
- *  
+ *
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
 
 package spoon.support;
 
-import java.io.Serializable;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Stack;
-
 import spoon.Launcher;
 import spoon.reflect.code.CtAnnotationFieldAccess;
-import spoon.reflect.code.CtArrayAccess;
 import spoon.reflect.code.CtArrayRead;
 import spoon.reflect.code.CtArrayWrite;
 import spoon.reflect.code.CtAssert;
@@ -47,7 +37,6 @@ import spoon.reflect.code.CtContinue;
 import spoon.reflect.code.CtDo;
 import spoon.reflect.code.CtExecutableReferenceExpression;
 import spoon.reflect.code.CtExpression;
-import spoon.reflect.code.CtFieldAccess;
 import spoon.reflect.code.CtFieldRead;
 import spoon.reflect.code.CtFieldWrite;
 import spoon.reflect.code.CtFor;
@@ -71,7 +60,6 @@ import spoon.reflect.code.CtTry;
 import spoon.reflect.code.CtTryWithResource;
 import spoon.reflect.code.CtTypeAccess;
 import spoon.reflect.code.CtUnaryOperator;
-import spoon.reflect.code.CtVariableAccess;
 import spoon.reflect.code.CtVariableRead;
 import spoon.reflect.code.CtVariableWrite;
 import spoon.reflect.code.CtWhile;
@@ -96,6 +84,7 @@ import spoon.reflect.reference.CtArrayTypeReference;
 import spoon.reflect.reference.CtCatchVariableReference;
 import spoon.reflect.reference.CtExecutableReference;
 import spoon.reflect.reference.CtFieldReference;
+import spoon.reflect.reference.CtImplicitTypeReference;
 import spoon.reflect.reference.CtLocalVariableReference;
 import spoon.reflect.reference.CtPackageReference;
 import spoon.reflect.reference.CtParameterReference;
@@ -103,7 +92,6 @@ import spoon.reflect.reference.CtReference;
 import spoon.reflect.reference.CtTypeParameterReference;
 import spoon.reflect.reference.CtTypeReference;
 import spoon.support.reflect.code.CtAnnotationFieldAccesImpl;
-import spoon.support.reflect.code.CtArrayAccessImpl;
 import spoon.support.reflect.code.CtArrayReadImpl;
 import spoon.support.reflect.code.CtArrayWriteImpl;
 import spoon.support.reflect.code.CtAssertImpl;
@@ -121,7 +109,6 @@ import spoon.support.reflect.code.CtConstructorCallImpl;
 import spoon.support.reflect.code.CtContinueImpl;
 import spoon.support.reflect.code.CtDoImpl;
 import spoon.support.reflect.code.CtExecutableReferenceExpressionImpl;
-import spoon.support.reflect.code.CtFieldAccessImpl;
 import spoon.support.reflect.code.CtFieldReadImpl;
 import spoon.support.reflect.code.CtFieldWriteImpl;
 import spoon.support.reflect.code.CtForEachImpl;
@@ -145,7 +132,6 @@ import spoon.support.reflect.code.CtTryImpl;
 import spoon.support.reflect.code.CtTryWithResourceImpl;
 import spoon.support.reflect.code.CtTypeAccessImpl;
 import spoon.support.reflect.code.CtUnaryOperatorImpl;
-import spoon.support.reflect.code.CtVariableAccessImpl;
 import spoon.support.reflect.code.CtVariableReadImpl;
 import spoon.support.reflect.code.CtVariableWriteImpl;
 import spoon.support.reflect.code.CtWhileImpl;
@@ -169,12 +155,22 @@ import spoon.support.reflect.reference.CtArrayTypeReferenceImpl;
 import spoon.support.reflect.reference.CtCatchVariableReferenceImpl;
 import spoon.support.reflect.reference.CtExecutableReferenceImpl;
 import spoon.support.reflect.reference.CtFieldReferenceImpl;
+import spoon.support.reflect.reference.CtImplicitTypeReferenceImpl;
 import spoon.support.reflect.reference.CtLocalVariableReferenceImpl;
 import spoon.support.reflect.reference.CtPackageReferenceImpl;
 import spoon.support.reflect.reference.CtParameterReferenceImpl;
 import spoon.support.reflect.reference.CtTypeParameterReferenceImpl;
 import spoon.support.reflect.reference.CtTypeReferenceImpl;
 import spoon.support.util.RtHelper;
+
+import java.io.Serializable;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Stack;
 
 /**
  * This class implements a default core factory for Spoon's meta-model. This
@@ -200,8 +196,9 @@ public class DefaultCoreFactory implements CoreFactory, Serializable {
 
 	@SuppressWarnings("unchecked")
 	private <T> T clone(T object, Stack<CtElement> cloningContext) {
-		if (object == null)
+		if (object == null) {
 			return null;
+		}
 		T result = null;
 		try {
 			if (!(object instanceof CtElement || object instanceof CtReference)) {
@@ -241,16 +238,13 @@ public class DefaultCoreFactory implements CoreFactory, Serializable {
 				// } else {
 				if (!f.getName().equals("parent")) {
 					Object fieldValue = f.get(object);
-					if (!Modifier.isFinal(f.getModifiers())
-							&& !Modifier.isStatic(f.getModifiers())) {
+					if (!Modifier.isFinal(f.getModifiers()) && !Modifier.isStatic(f.getModifiers())) {
 						if (fieldValue instanceof Collection) {
 							Collection<Object> c;
-							if (fieldValue == CtElementImpl.EMPTY_COLLECTION()
-									|| fieldValue == CtElementImpl.EMPTY_SET()) {
+							if (fieldValue == CtElementImpl.emptyCollection() || fieldValue == CtElementImpl.emptySet()) {
 								c = (Collection<Object>) fieldValue;
 							} else {
-								c = (Collection<Object>) fieldValue.getClass()
-										.getMethod("clone").invoke(fieldValue);
+								c = (Collection<Object>) fieldValue.getClass().getMethod("clone").invoke(fieldValue);
 								c.clear();
 								for (Object o : (Collection<Object>) fieldValue) {
 									c.add(clone(o, cloningContext));
@@ -262,18 +256,13 @@ public class DefaultCoreFactory implements CoreFactory, Serializable {
 							// TODO: ARE THERE REALLY MAP FIELDS IN THE MODEL?
 							// System.err.println(" cloning collection " + f+" :
 							// "+cloningContext.peek().getClass().getSimpleName());
-							Map<Object, Object> m = (Map<Object, Object>) fieldValue
-									.getClass().getMethod("clone")
-									.invoke(fieldValue);
+							Map<Object, Object> m = (Map<Object, Object>) fieldValue.getClass().getMethod("clone").invoke(fieldValue);
 							// m.clear();
 							f.set(result, m);
-							for (Entry<?, ?> e : ((Map<?, ?>) fieldValue)
-									.entrySet()) {
-								m.put(e.getKey(),
-										clone(e.getValue(), cloningContext));
+							for (Entry<?, ?> e : ((Map<?, ?>) fieldValue).entrySet()) {
+								m.put(e.getKey(), clone(e.getValue(), cloningContext));
 							}
-						} else if ((object instanceof CtReference)
-								&& (fieldValue instanceof CtElement)) {
+						} else if ((object instanceof CtReference) && (fieldValue instanceof CtElement)) {
 
 							f.set(result, fieldValue);
 						} else {
@@ -297,7 +286,8 @@ public class DefaultCoreFactory implements CoreFactory, Serializable {
 				// cloningContext.pop();
 			}
 		} catch (Exception e) {
-			Launcher.logger.error(e.getMessage(), e);
+			Launcher.LOGGER.error(e.getMessage(), e);
+			//			cloningContext.pop();
 		}
 		return result;
 
@@ -312,17 +302,12 @@ public class DefaultCoreFactory implements CoreFactory, Serializable {
 	public <T extends Annotation> CtAnnotationType<T> createAnnotationType() {
 		CtAnnotationType<T> e = new CtAnnotationTypeImpl<T>();
 		e.setFactory(getMainFactory());
+		e.setParent(getMainFactory().Package().getRootPackage());
 		return e;
 	}
 
 	public CtAnonymousExecutable createAnonymousExecutable() {
 		CtAnonymousExecutable e = new CtAnonymousExecutableImpl();
-		e.setFactory(getMainFactory());
-		return e;
-	}
-
-	public <T, E extends CtExpression<?>> CtArrayAccess<T, E> createArrayAccess() {
-		CtArrayAccess<T, E> e = new CtArrayAccessImpl<T, E>();
 		e.setFactory(getMainFactory());
 		return e;
 	}
@@ -392,6 +377,7 @@ public class DefaultCoreFactory implements CoreFactory, Serializable {
 	public <T> CtClass<T> createClass() {
 		CtClass<T> e = new CtClassImpl<T>();
 		e.setFactory(getMainFactory());
+		e.setParent(getMainFactory().Package().getRootPackage());
 		return e;
 	}
 
@@ -422,6 +408,7 @@ public class DefaultCoreFactory implements CoreFactory, Serializable {
 	public <T extends Enum<?>> CtEnum<T> createEnum() {
 		CtEnum<T> e = new CtEnumImpl<T>();
 		e.setFactory(getMainFactory());
+		e.setParent(getMainFactory().Package().getRootPackage());
 		return e;
 	}
 
@@ -433,12 +420,6 @@ public class DefaultCoreFactory implements CoreFactory, Serializable {
 
 	public <T> CtField<T> createField() {
 		CtField<T> e = new CtFieldImpl<T>();
-		e.setFactory(getMainFactory());
-		return e;
-	}
-
-	public <T> CtFieldAccess<T> createFieldAccess() {
-		CtFieldAccess<T> e = new CtFieldAccessImpl<T>();
 		e.setFactory(getMainFactory());
 		return e;
 	}
@@ -490,6 +471,7 @@ public class DefaultCoreFactory implements CoreFactory, Serializable {
 	public <T> CtInterface<T> createInterface() {
 		CtInterface<T> e = new CtInterfaceImpl<T>();
 		e.setFactory(getMainFactory());
+		e.setParent(getMainFactory().Package().getRootPackage());
 		return e;
 	}
 
@@ -579,6 +561,7 @@ public class DefaultCoreFactory implements CoreFactory, Serializable {
 	public CtPackage createPackage() {
 		CtPackage e = new CtPackageImpl();
 		e.setFactory(getMainFactory());
+		e.setParent(getMainFactory().Package().getRootPackage());
 		return e;
 	}
 
@@ -662,6 +645,13 @@ public class DefaultCoreFactory implements CoreFactory, Serializable {
 	}
 
 	@Override
+	public <T> CtImplicitTypeReference<T> createImplicitTypeReference() {
+		final CtImplicitTypeReferenceImpl<T> e = new CtImplicitTypeReferenceImpl<T>();
+		e.setFactory(getMainFactory());
+		return e;
+	}
+
+	@Override
 	public <T> CtTypeAccess<T> createTypeAccess() {
 		CtTypeAccess<T> e = new CtTypeAccessImpl<T>();
 		e.setFactory(getMainFactory());
@@ -670,12 +660,6 @@ public class DefaultCoreFactory implements CoreFactory, Serializable {
 
 	public <T> CtUnaryOperator<T> createUnaryOperator() {
 		CtUnaryOperator<T> e = new CtUnaryOperatorImpl<T>();
-		e.setFactory(getMainFactory());
-		return e;
-	}
-
-	public <T> CtVariableAccess<T> createVariableAccess() {
-		CtVariableAccess<T> e = new CtVariableAccessImpl<T>();
 		e.setFactory(getMainFactory());
 		return e;
 	}
@@ -718,10 +702,8 @@ public class DefaultCoreFactory implements CoreFactory, Serializable {
 		this.mainFactory = mainFactory;
 	}
 
-	public SourcePosition createSourcePosition(CompilationUnit compilationUnit,
-			int start, int end, int[] lineSeparatorPositions) {
-		return new SourcePositionImpl(compilationUnit, start, end,
-				lineSeparatorPositions);
+	public SourcePosition createSourcePosition(CompilationUnit compilationUnit, int start, int end, int[] lineSeparatorPositions) {
+		return new SourcePositionImpl(compilationUnit, start, end, lineSeparatorPositions);
 	}
 
 	public CompilationUnit createCompilationUnit() {

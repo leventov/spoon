@@ -17,6 +17,9 @@
 
 package spoon.support.reflect.reference;
 
+import static spoon.reflect.ModelElementContainerDefaultCapacities.ANNOTATIONS_CONTAINER_DEFAULT_CAPACITY;
+import static spoon.reflect.ModelElementContainerDefaultCapacities.TYPE_TYPE_PARAMETERS_CONTAINER_DEFAULT_CAPACITY;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Constructor;
@@ -39,7 +42,9 @@ import spoon.reflect.declaration.ModifierKind;
 import spoon.reflect.reference.CtArrayTypeReference;
 import spoon.reflect.reference.CtExecutableReference;
 import spoon.reflect.reference.CtFieldReference;
+import spoon.reflect.reference.CtGenericElementReference;
 import spoon.reflect.reference.CtPackageReference;
+import spoon.reflect.reference.CtTypeAnnotableReference;
 import spoon.reflect.reference.CtTypeParameterReference;
 import spoon.reflect.reference.CtTypeReference;
 import spoon.reflect.visitor.CtVisitor;
@@ -47,16 +52,12 @@ import spoon.reflect.visitor.filter.AbstractFilter;
 import spoon.support.reflect.declaration.CtElementImpl;
 import spoon.support.util.RtHelper;
 
-import static spoon.reflect.ModelElementContainerDefaultCapacities.ANNOTATIONS_CONTAINER_DEFAULT_CAPACITY;
-import static spoon.reflect.ModelElementContainerDefaultCapacities.TYPE_TYPE_PARAMETERS_CONTAINER_DEFAULT_CAPACITY;
-
-public class CtTypeReferenceImpl<T> extends CtReferenceImpl implements
-		CtTypeReference<T> {
+public class CtTypeReferenceImpl<T> extends CtReferenceImpl implements CtTypeReference<T> {
 	private static final long serialVersionUID = 1L;
 
-	List<CtTypeReference<?>> actualTypeArguments = CtElementImpl.EMPTY_LIST();
+	List<CtTypeReference<?>> actualTypeArguments = CtElementImpl.emptyList();
 
-	List<CtAnnotation<? extends Annotation>> annotations = CtElementImpl.EMPTY_LIST();
+	List<CtAnnotation<? extends Annotation>> annotations = CtElementImpl.emptyList();
 
 	CtTypeReference<?> declaringType;
 
@@ -66,10 +67,12 @@ public class CtTypeReferenceImpl<T> extends CtReferenceImpl implements
 		super();
 	}
 
+	@Override
 	public void accept(CtVisitor visitor) {
 		visitor.visitCtTypeReference(this);
 	}
 
+	@Override
 	public CtTypeReference<?> box() {
 		if (!isPrimitive()) {
 			return this;
@@ -104,27 +107,28 @@ public class CtTypeReferenceImpl<T> extends CtReferenceImpl implements
 		return this;
 	}
 
+	@Override
 	@SuppressWarnings("unchecked")
 	public Class<T> getActualClass() {
 		if (isPrimitive()) {
 			String simpleN = getSimpleName();
-			if (simpleN.equals("boolean")) {
+			if ("boolean".equals(simpleN)) {
 				return (Class<T>) boolean.class;
-			} else if (simpleN.equals("byte")) {
+			} else if ("byte".equals(simpleN)) {
 				return (Class<T>) byte.class;
-			} else if (simpleN.equals("double")) {
+			} else if ("double".equals(simpleN)) {
 				return (Class<T>) double.class;
-			} else if (simpleN.equals("int")) {
+			} else if ("int".equals(simpleN)) {
 				return (Class<T>) int.class;
-			} else if (simpleN.equals("short")) {
+			} else if ("short".equals(simpleN)) {
 				return (Class<T>) short.class;
-			} else if (simpleN.equals("char")) {
+			} else if ("char".equals(simpleN)) {
 				return (Class<T>) char.class;
-			} else if (simpleN.equals("long")) {
+			} else if ("long".equals(simpleN)) {
 				return (Class<T>) long.class;
-			} else if (simpleN.equals("float")) {
+			} else if ("float".equals(simpleN)) {
 				return (Class<T>) float.class;
-			} else if (simpleN.equals("void")) {
+			} else if ("void".equals(simpleN)) {
 				return (Class<T>) void.class;
 			}
 		}
@@ -140,12 +144,11 @@ public class CtTypeReferenceImpl<T> extends CtReferenceImpl implements
 		try {
 			return (Class<T>) getFactory().getEnvironment().getClassLoader().loadClass(getQualifiedName());
 		} catch (java.lang.ClassNotFoundException cnfe) {
-			throw new spoon.support.reflect.reference.SpoonClassNotFoundException("cannot load class: "
-					+ getQualifiedName() + " with class loader "
-					+ Thread.currentThread().getContextClassLoader(), cnfe);
+			throw new SpoonClassNotFoundException("cannot load class: " + getQualifiedName() + " with class loader " + Thread.currentThread().getContextClassLoader(), cnfe);
 		}
 	}
 
+	@Override
 	public List<CtTypeReference<?>> getActualTypeArguments() {
 		return actualTypeArguments;
 	}
@@ -155,11 +158,11 @@ public class CtTypeReferenceImpl<T> extends CtReferenceImpl implements
 		return getActualClass();
 	}
 
+	@Override
 	@SuppressWarnings("unchecked")
 	public CtType<T> getDeclaration() {
 		if (!isPrimitive() && !isAnonymous()) {
-			return (CtType<T>) getFactory().Type()
-					.get(getQualifiedName());
+			return (CtType<T>) getFactory().Type().get(getQualifiedName());
 		}
 		if (!isPrimitive() && isAnonymous()) {
 			final CtType<?> rootType = getFactory().Type().get(getDeclaringType().getQualifiedName());
@@ -174,19 +177,21 @@ public class CtTypeReferenceImpl<T> extends CtReferenceImpl implements
 		return null;
 	}
 
+	@Override
 	public CtTypeReference<?> getDeclaringType() {
 		return declaringType;
 	}
 
+	@Override
 	public CtPackageReference getPackage() {
 		return pack;
 	}
 
+	@Override
 	public String getQualifiedName() {
 		if (getDeclaringType() != null) {
-			return getDeclaringType().getQualifiedName()
-					+ CtType.INNERTTYPE_SEPARATOR + getSimpleName();
-		} else if (getPackage() != null && !getPackage().getSimpleName().equals(CtPackage.TOP_LEVEL_PACKAGE_NAME)) {
+			return getDeclaringType().getQualifiedName() + CtType.INNERTTYPE_SEPARATOR + getSimpleName();
+		} else if (getPackage() != null && !CtPackage.TOP_LEVEL_PACKAGE_NAME.equals(getPackage().getSimpleName())) {
 			if (!getTypeAnnotations().isEmpty()) {
 				String qualifiedName = getPackage().getSimpleName() + CtPackage.PACKAGE_SEPARATOR;
 				for (CtAnnotation<? extends Annotation> ctAnnotation : getTypeAnnotations()) {
@@ -201,25 +206,18 @@ public class CtTypeReferenceImpl<T> extends CtReferenceImpl implements
 		}
 	}
 
+	@Override
 	public boolean isAssignableFrom(CtTypeReference<?> type) {
-		if (type != null) {
-			return type.isSubtypeOf(this);
-		}
-		return false;
+		return type != null && type.isSubtypeOf(this);
 	}
 
+	@Override
 	public boolean isPrimitive() {
-		return (getSimpleName().equals("boolean")
-				|| getSimpleName().equals("byte")
-				|| getSimpleName().equals("double")
-				|| getSimpleName().equals("int")
-				|| getSimpleName().equals("short")
-				|| getSimpleName().equals("char")
-				|| getSimpleName().equals("long")
-				|| getSimpleName().equals("float") || getSimpleName().equals(
-				"void"));
+		return (getSimpleName().equals("boolean") || getSimpleName().equals("byte") || getSimpleName().equals("double") || getSimpleName().equals("int") || getSimpleName().equals("short")
+				|| getSimpleName().equals("char") || getSimpleName().equals("long") || getSimpleName().equals("float") || getSimpleName().equals("void"));
 	}
 
+	@Override
 	public boolean isSubtypeOf(CtTypeReference<?> type) {
 		if (type instanceof CtTypeParameterReference) {
 			return false;
@@ -239,18 +237,13 @@ public class CtTypeReferenceImpl<T> extends CtReferenceImpl implements
 		if ((subTypeDecl == null) && (superTypeDecl == null)) {
 			try {
 				if (((this instanceof CtArrayTypeReference) && (type instanceof CtArrayTypeReference))) {
-					return ((CtArrayTypeReference<?>) this).getComponentType()
-							.isSubtypeOf(
-									((CtArrayTypeReference<?>) type)
-											.getComponentType());
+					return ((CtArrayTypeReference<?>) this).getComponentType().isSubtypeOf(((CtArrayTypeReference<?>) type).getComponentType());
 				}
 				Class<?> actualSubType = getActualClass();
 				Class<?> actualSuperType = type.getActualClass();
 				return actualSuperType.isAssignableFrom(actualSubType);
 			} catch (Exception e) {
-				Launcher.logger.error("cannot determine runtime types for '"
-						+ this + "' (" + getActualClass() + ") and '" + type
-						+ "' (" + type.getActualClass() + ")", e);
+				Launcher.LOGGER.error("cannot determine runtime types for '" + this + "' (" + getActualClass() + ") and '" + type + "' (" + type.getActualClass() + ")", e);
 				return false;
 			}
 		}
@@ -258,25 +251,20 @@ public class CtTypeReferenceImpl<T> extends CtReferenceImpl implements
 			return true;
 		}
 		if (subTypeDecl != null) {
-			if (subTypeDecl instanceof CtType) {
-				for (CtTypeReference<?> ref : ((CtType<?>) subTypeDecl)
-						.getSuperInterfaces()) {
-					if (ref.isSubtypeOf(type)) {
-						return true;
-					}
+			for (CtTypeReference<?> ref : subTypeDecl.getSuperInterfaces()) {
+				if (ref.isSubtypeOf(type)) {
+					return true;
 				}
-				if (subTypeDecl instanceof CtClass) {
-					if (getFactory().Type().OBJECT.equals(type)) {
+			}
+			if (subTypeDecl instanceof CtClass) {
+				if (getFactory().Type().OBJECT.equals(type)) {
+					return true;
+				}
+				if (((CtClass<?>) subTypeDecl).getSuperclass() != null) {
+					if (((CtClass<?>) subTypeDecl).getSuperclass().equals(type)) {
 						return true;
 					}
-					if (((CtClass<?>) subTypeDecl).getSuperclass() != null) {
-						if (((CtClass<?>) subTypeDecl).getSuperclass().equals(
-								type)) {
-							return true;
-						}
-						return ((CtClass<?>) subTypeDecl).getSuperclass()
-								.isSubtypeOf(type);
-					}
+					return ((CtClass<?>) subTypeDecl).getSuperclass().isSubtypeOf(type);
 				}
 			}
 			return false;
@@ -284,39 +272,42 @@ public class CtTypeReferenceImpl<T> extends CtReferenceImpl implements
 			try {
 				Class<?> actualSubType = getActualClass();
 				for (Class<?> c : actualSubType.getInterfaces()) {
-					if (getFactory().Type().createReference(c)
-							.isSubtypeOf(type)) {
+					if (getFactory().Type().createReference(c).isSubtypeOf(type)) {
 						return true;
 					}
 				}
-				CtTypeReference<?> superType = getFactory().Type()
-						.createReference(actualSubType.getSuperclass());
+				CtTypeReference<?> superType = getFactory().Type().createReference(actualSubType.getSuperclass());
 				if (superType.equals(type)) {
 					return true;
 				} else {
 					return superType.isSubtypeOf(type);
 				}
 			} catch (Exception e) {
-				Launcher.logger.error("cannot determine runtime types for '"
-						+ this + "' and '" + type + "'", e);
+				Launcher.LOGGER.error("cannot determine runtime types for '" + this + "' and '" + type + "'", e);
 				return false;
 			}
 		}
 	}
 
-	public void setActualTypeArguments(
-			List<CtTypeReference<?>> actualTypeArguments) {
+	@Override
+	public <C extends CtGenericElementReference> C setActualTypeArguments(List<CtTypeReference<?>> actualTypeArguments) {
 		this.actualTypeArguments = actualTypeArguments;
+		return (C) this;
 	}
 
-	public void setDeclaringType(CtTypeReference<?> declaringType) {
+	@Override
+	public <C extends CtTypeReference<T>> C setDeclaringType(CtTypeReference<?> declaringType) {
 		this.declaringType = declaringType;
+		return (C) this;
 	}
 
-	public void setPackage(CtPackageReference pack) {
+	@Override
+	public <C extends CtTypeReference<T>> C setPackage(CtPackageReference pack) {
 		this.pack = pack;
+		return (C) this;
 	}
 
+	@Override
 	public CtTypeReference<?> unbox() {
 		if (isPrimitive()) {
 			return this;
@@ -351,6 +342,7 @@ public class CtTypeReferenceImpl<T> extends CtReferenceImpl implements
 		return this;
 	}
 
+	@Override
 	public Collection<CtFieldReference<?>> getDeclaredFields() {
 		Collection<CtFieldReference<?>> l = new ArrayList<CtFieldReference<?>>();
 		CtType<?> t = getDeclaration();
@@ -360,10 +352,8 @@ public class CtTypeReferenceImpl<T> extends CtReferenceImpl implements
 			}
 			if (getActualClass().isAnnotation()) {
 				for (Method m : getActualClass().getDeclaredMethods()) {
-					CtTypeReference<?> retRef = getFactory().Type()
-							.createReference(m.getReturnType());
-					CtFieldReference<?> fr = getFactory().Field()
-							.createReference(this, retRef, m.getName());
+					CtTypeReference<?> retRef = getFactory().Type().createReference(m.getReturnType());
+					CtFieldReference<?> fr = getFactory().Field().createReference(this, retRef, m.getName());
 					// fr.
 					l.add(fr);
 				}
@@ -374,7 +364,7 @@ public class CtTypeReferenceImpl<T> extends CtReferenceImpl implements
 		}
 		return l;
 	}
-	
+
 	@Override
 	public Collection<CtExecutableReference<?>> getDeclaredExecutables() {
 		CtType<T> t = getDeclaration();
@@ -385,6 +375,7 @@ public class CtTypeReferenceImpl<T> extends CtReferenceImpl implements
 		}
 	}
 
+	@Override
 	public Collection<CtFieldReference<?>> getAllFields() {
 		CtType<?> t = getDeclaration();
 		if (t == null) {
@@ -394,6 +385,7 @@ public class CtTypeReferenceImpl<T> extends CtReferenceImpl implements
 		}
 	}
 
+	@Override
 	public Collection<CtExecutableReference<?>> getAllExecutables() {
 		Collection<CtExecutableReference<?>> l = new ArrayList<CtExecutableReference<?>>();
 		CtType<T> t = getDeclaration();
@@ -403,19 +395,18 @@ public class CtTypeReferenceImpl<T> extends CtReferenceImpl implements
 				l.add(getFactory().Method().createReference(m));
 			}
 			for (Constructor<?> cons : c.getDeclaredConstructors()) {
-				CtExecutableReference<?> consRef = getFactory().Constructor()
-						.createReference(cons);
+				CtExecutableReference<?> consRef = getFactory().Constructor().createReference(cons);
 				l.add(consRef);
 			}
 			Class<?> sc = c.getSuperclass();
-			l.addAll(getFactory().Type().createReference(sc)
-						.getAllExecutables());
+			l.addAll(getFactory().Type().createReference(sc).getAllExecutables());
 		} else {
 			return t.getAllExecutables();
 		}
 		return l;
 	}
 
+	@Override
 	public Set<ModifierKind> getModifiers() {
 		CtType<T> t = getDeclaration();
 		if (t != null) {
@@ -425,6 +416,7 @@ public class CtTypeReferenceImpl<T> extends CtReferenceImpl implements
 		return RtHelper.getModifiers(c.getModifiers());
 	}
 
+	@Override
 	public CtTypeReference<?> getSuperclass() {
 		CtType<T> t = getDeclaration();
 		if (t != null) {
@@ -432,14 +424,14 @@ public class CtTypeReferenceImpl<T> extends CtReferenceImpl implements
 		} else {
 			Class<T> c = getActualClass();
 			Class<?> sc = c.getSuperclass();
-			if (sc == null)
-			{
+			if (sc == null) {
 				return null;
 			}
 			return getFactory().Type().createReference(sc);
 		}
 	}
 
+	@Override
 	public Set<CtTypeReference<?>> getSuperInterfaces() {
 		CtType<?> t = getDeclaration();
 		if (t != null) {
@@ -469,21 +461,17 @@ public class CtTypeReferenceImpl<T> extends CtReferenceImpl implements
 	}
 
 	@Override
-	public boolean addActualTypeArgument(CtTypeReference<?> actualTypeArgument) {
-		if (actualTypeArguments == CtElementImpl
-				.<CtTypeReference<?>>EMPTY_LIST()) {
-			actualTypeArguments = new ArrayList<CtTypeReference<?>>(
-					TYPE_TYPE_PARAMETERS_CONTAINER_DEFAULT_CAPACITY);
+	public <C extends CtGenericElementReference> C addActualTypeArgument(CtTypeReference<?> actualTypeArgument) {
+		if (actualTypeArguments == CtElementImpl.<CtTypeReference<?>>emptyList()) {
+			actualTypeArguments = new ArrayList<CtTypeReference<?>>(TYPE_TYPE_PARAMETERS_CONTAINER_DEFAULT_CAPACITY);
 		}
-		return actualTypeArguments.add(actualTypeArgument);
+		actualTypeArguments.add(actualTypeArgument);
+		return (C) this;
 	}
 
 	@Override
-	public boolean removeActualTypeArgument(
-			CtTypeReference<?> actualTypeArgument) {
-		return actualTypeArguments !=
-				CtElementImpl.<CtTypeReference<?>>EMPTY_LIST() &&
-				actualTypeArguments.remove(actualTypeArgument);
+	public boolean removeActualTypeArgument(CtTypeReference<?> actualTypeArgument) {
+		return actualTypeArguments != CtElementImpl.<CtTypeReference<?>>emptyList() && actualTypeArguments.remove(actualTypeArgument);
 	}
 
 	@Override
@@ -502,25 +490,26 @@ public class CtTypeReferenceImpl<T> extends CtReferenceImpl implements
 	}
 
 	@Override
-	public void setTypeAnnotations(List<CtAnnotation<? extends Annotation>> annotations) {
+	public <C extends CtTypeAnnotableReference> C setTypeAnnotations(List<CtAnnotation<? extends Annotation>> annotations) {
 		this.annotations = annotations;
+		return (C) this;
 	}
 
 	@Override
-	public boolean addTypeAnnotation(CtAnnotation<? extends Annotation> annotation) {
+	public <C extends CtTypeAnnotableReference> C addTypeAnnotation(CtAnnotation<? extends Annotation> annotation) {
 		if (annotation == null) {
-			return false;
+			return (C) this;
 		}
-		if ((List<?>) this.annotations == (List<?>) CtElementImpl.EMPTY_LIST()) {
-			this.annotations = new ArrayList<CtAnnotation<? extends Annotation>>(
-					ANNOTATIONS_CONTAINER_DEFAULT_CAPACITY);
+		if ((List<?>) this.annotations == (List<?>) CtElementImpl.emptyList()) {
+			this.annotations = new ArrayList<CtAnnotation<? extends Annotation>>(ANNOTATIONS_CONTAINER_DEFAULT_CAPACITY);
 		}
-		return !this.annotations.contains(annotation) && this.annotations.add(annotation);
+		this.annotations.add(annotation);
+		return (C) this;
 	}
 
 	@Override
 	public boolean removeTypeAnnotation(CtAnnotation<? extends Annotation> annotation) {
 		return annotation != null && this.annotations.remove(annotation);
 	}
-	
+
 }

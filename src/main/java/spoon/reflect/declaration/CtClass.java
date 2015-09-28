@@ -1,16 +1,16 @@
-/* 
+/*
  * Spoon - http://spoon.gforge.inria.fr/
  * Copyright (C) 2006 INRIA Futurs <renaud.pawlak@inria.fr>
- * 
+ *
  * This software is governed by the CeCILL-C License under French law and
- * abiding by the rules of distribution of free software. You can use, modify 
- * and/or redistribute the software under the terms of the CeCILL-C license as 
- * circulated by CEA, CNRS and INRIA at http://www.cecill.info. 
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT 
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or 
+ * abiding by the rules of distribution of free software. You can use, modify
+ * and/or redistribute the software under the terms of the CeCILL-C license as
+ * circulated by CEA, CNRS and INRIA at http://www.cecill.info.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE. See the CeCILL-C License for more details.
- *  
+ *
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
@@ -25,7 +25,7 @@ import spoon.reflect.reference.CtTypeReference;
 
 /**
  * This element represents a class declaration.
- * 
+ *
  * @author Renaud Pawlak
  */
 public interface CtClass<T extends Object> extends CtType<T>, CtStatement {
@@ -54,19 +54,19 @@ public interface CtClass<T extends Object> extends CtType<T>, CtStatement {
 	/**
 	 * Sets the anonymous blocks of this class.
 	 */
-	void setAnonymousExecutables(List<CtAnonymousExecutable> e);
+	<C extends CtClass<T>> C setAnonymousExecutables(List<CtAnonymousExecutable> e);
 
 	/**
 	 * Add an anonymous block to this class.
-	 * 
+	 *
 	 * @param e
 	 * @return <tt>true</tt> if this element changed as a result of the call
 	 */
-	boolean addAnonymousExecutable(CtAnonymousExecutable e);
+	<C extends CtClass<T>> C addAnonymousExecutable(CtAnonymousExecutable e);
 
 	/**
 	 * Remove an anonymous block to this class.
-	 * 
+	 *
 	 * @param e
 	 * @return <tt>true</tt> if this element changed as a result of the call
 	 */
@@ -75,12 +75,12 @@ public interface CtClass<T extends Object> extends CtType<T>, CtStatement {
 	/**
 	 * Sets the constructors for this class.
 	 */
-	void setConstructors(Set<CtConstructor<T>> constructors);
+	<C extends CtClass<T>> C setConstructors(Set<CtConstructor<T>> constructors);
 
 	/**
 	 * Adds a constructor to this class.
 	 */
-	void addConstructor(CtConstructor<T> constructor);
+	<C extends CtClass<T>> C addConstructor(CtConstructor<T> constructor);
 
 	/**
 	 * Removes a constructor from this class.
@@ -90,7 +90,7 @@ public interface CtClass<T extends Object> extends CtType<T>, CtStatement {
 	/**
 	 * Sets the superclass type.
 	 */
-	void setSuperclass(CtTypeReference<?> classType);
+	<C extends CtClass<T>> C setSuperclass(CtTypeReference<?> classType);
 
 	/**
 	 * Return {@code true} if the referenced type is a anonymous type

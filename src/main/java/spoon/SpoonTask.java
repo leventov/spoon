@@ -49,9 +49,9 @@ public class SpoonTask extends Java {
 
 		/**
 		 * Constructs a new processor type.
-		 * 
+		 *
 		 * @param type
-		 *            the type's fully qualified name
+		 * 		the type's fully qualified name
 		 */
 		public ProcessorType(String type) {
 			setType(type);
@@ -106,6 +106,10 @@ public class SpoonTask extends Java {
 	boolean verbose = false;
 
 	boolean debug = false;
+
+	boolean imports = false;
+
+	boolean noclasspath = false;
 
 	boolean precompile = false;
 
@@ -175,6 +179,14 @@ public class SpoonTask extends Java {
 
 		if (tabs) {
 			createArg().setValue("--tabs");
+		}
+
+		if (imports) {
+			createArg().setValue("--with-imports");
+		}
+
+		if (noclasspath) {
+			createArg().setValue("--noclasspath");
 		}
 
 		createArg().setValue("--tabsize");
@@ -339,9 +351,9 @@ public class SpoonTask extends Java {
 
 	/**
 	 * Sets a Spoolet to be deployed.
-	 * 
+	 *
 	 * @param spoonlet
-	 *            the deployment descriptor file (usually spoon.xml)
+	 * 		the deployment descriptor file (usually spoon.xml)
 	 */
 	public void setSpoonlet(File spoonlet) {
 		this.spoonlet = spoonlet;
@@ -450,9 +462,9 @@ public class SpoonTask extends Java {
 	/**
 	 * Set the classpath to be used when building, processing and compiling the
 	 * sources.
-	 * 
+	 *
 	 * @param s
-	 *            an Ant Path object containing the classpath.
+	 * 		an Ant Path object containing the classpath.
 	 */
 	public void setSourceClasspath(Path s) {
 		createSourceClasspath().append(s);
@@ -460,9 +472,9 @@ public class SpoonTask extends Java {
 
 	/**
 	 * Source classpath to use, by reference.
-	 * 
+	 *
 	 * @param r
-	 *            a reference to an existing classpath
+	 * 		a reference to an existing classpath
 	 */
 	public void setSourceClasspathRef(Reference r) {
 		createSourceClasspath().setRefid(r);
@@ -479,9 +491,9 @@ public class SpoonTask extends Java {
 
 	/**
 	 * Set the classpath to be used when building the template sources.
-	 * 
+	 *
 	 * @param s
-	 *            an Ant Path object containing the classpath.
+	 * 		an Ant Path object containing the classpath.
 	 */
 	public void setTemplateClasspath(Path s) {
 		createTemplateClasspath().append(s);
@@ -489,9 +501,9 @@ public class SpoonTask extends Java {
 
 	/**
 	 * Template classpath to use, by reference.
-	 * 
+	 *
 	 * @param r
-	 *            a reference to an existing classpath
+	 * 		a reference to an existing classpath
 	 */
 	public void setTemplateClasspathRef(Reference r) {
 		createTemplateClasspath().setRefid(r);
@@ -524,6 +536,20 @@ public class SpoonTask extends Java {
 	 */
 	public void setEncoding(String encoding) {
 		this.encoding = encoding;
+	}
+
+	/**
+	 * Sets automatic imports in generated files.
+	 */
+	public void setImports(boolean imports) {
+		this.imports = imports;
+	}
+
+	/**
+	 * Does not assume a full classpath
+	 */
+	public void setNoClasspath(boolean noclasspath) {
+		this.noclasspath = noclasspath;
 	}
 
 	/**

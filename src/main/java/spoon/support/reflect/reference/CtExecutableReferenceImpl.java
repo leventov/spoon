@@ -35,6 +35,7 @@ import spoon.reflect.declaration.CtMethod;
 import spoon.reflect.declaration.CtType;
 import spoon.reflect.declaration.ModifierKind;
 import spoon.reflect.reference.CtExecutableReference;
+import spoon.reflect.reference.CtGenericElementReference;
 import spoon.reflect.reference.CtTypeReference;
 import spoon.reflect.visitor.CtVisitor;
 import spoon.support.reflect.declaration.CtElementImpl;
@@ -42,99 +43,103 @@ import spoon.support.util.RtHelper;
 
 import static spoon.reflect.ModelElementContainerDefaultCapacities.METHOD_TYPE_PARAMETERS_CONTAINER_DEFAULT_CAPACITY;
 
-public class CtExecutableReferenceImpl<T> extends CtReferenceImpl implements
-		CtExecutableReference<T> {
+public class CtExecutableReferenceImpl<T> extends CtReferenceImpl
+		implements CtExecutableReference<T> {
 	private static final long serialVersionUID = 1L;
 
 	boolean stat = false;
 
-	List<CtTypeReference<?>> actualTypeArguments = CtElementImpl.EMPTY_LIST();
+	List<CtTypeReference<?>> actualTypeArguments = CtElementImpl.emptyList();
 
 	CtTypeReference<?> declaringType;
 
 	CtTypeReference<T> type;
 
-	List<CtTypeReference<?>> parameters = CtElementImpl.EMPTY_LIST();
+	List<CtTypeReference<?>> parameters = CtElementImpl.emptyList();
 
 	public CtExecutableReferenceImpl() {
 		super();
 	}
 
+	@Override
 	public void accept(CtVisitor visitor) {
 		visitor.visitCtExecutableReference(this);
 	}
 
+	@Override
 	public List<CtTypeReference<?>> getActualTypeArguments() {
 		return actualTypeArguments;
 	}
 
+	@Override
 	public boolean isConstructor() {
 		return getSimpleName().equals(CONSTRUCTOR_NAME);
 	}
 
-//	@Override
-//	public <A extends Annotation> A getAnnotation(Class<A> annotationType) {
-//		A annotation = super.getAnnotation(annotationType);
-//		if (annotation != null) {
-//			return annotation;
-//		}
-//		// use reflection
-//		Class<?> c = getDeclaringType().getActualClass();
-//		for (Method m : RtHelper.getAllMethods(c)) {
-//			if (!getSimpleName().equals(m.getName())) {
-//				continue;
-//			}
-//			if (getParameterTypes().size() != m.getParameterTypes().length) {
-//				continue;
-//			}
-//			int i = 0;
-//			for (Class<?> t : m.getParameterTypes()) {
-//				if (t != getParameterTypes().get(i).getActualClass()) {
-//					break;
-//				}
-//				i++;
-//			}
-//			if (i == getParameterTypes().size()) {
-//				m.setAccessible(true);
-//				return m.getAnnotation(annotationType);
-//			}
-//		}
-//		return null;
-//	}
+	//	@Override
+	//	public <A extends Annotation> A getAnnotation(Class<A> annotationType) {
+	//		A annotation = super.getAnnotation(annotationType);
+	//		if (annotation != null) {
+	//			return annotation;
+	//		}
+	//		// use reflection
+	//		Class<?> c = getDeclaringType().getActualClass();
+	//		for (Method m : RtHelper.getAllMethods(c)) {
+	//			if (!getSimpleName().equals(m.getName())) {
+	//				continue;
+	//			}
+	//			if (getParameterTypes().size() != m.getParameterTypes().length) {
+	//				continue;
+	//			}
+	//			int i = 0;
+	//			for (Class<?> t : m.getParameterTypes()) {
+	//				if (t != getParameterTypes().get(i).getActualClass()) {
+	//					break;
+	//				}
+	//				i++;
+	//			}
+	//			if (i == getParameterTypes().size()) {
+	//				m.setAccessible(true);
+	//				return m.getAnnotation(annotationType);
+	//			}
+	//		}
+	//		return null;
+	//	}
 
-//	@Override
-//	public Annotation[] getAnnotations() {
-//		Annotation[] annotations = super.getAnnotations();
-//		if (annotations != null) {
-//			return annotations;
-//		}
-//		// use reflection
-//		Class<?> c = getDeclaringType().getActualClass();
-//		for (Method m : RtHelper.getAllMethods(c)) {
-//			if (!getSimpleName().equals(m.getName())) {
-//				continue;
-//			}
-//			if (getParameterTypes().size() != m.getParameterTypes().length) {
-//				continue;
-//			}
-//			int i = 0;
-//			for (Class<?> t : m.getParameterTypes()) {
-//				if (t != getParameterTypes().get(i).getActualClass()) {
-//					break;
-//				}
-//				i++;
-//			}
-//			if (i == getParameterTypes().size()) {
-//				m.setAccessible(true);
-//				return m.getAnnotations();
-//			}
-//		}
-//		return null;
-//	}
+	//	@Override
+	//	public Annotation[] getAnnotations() {
+	//		Annotation[] annotations = super.getAnnotations();
+	//		if (annotations != null) {
+	//			return annotations;
+	//		}
+	//		// use reflection
+	//		Class<?> c = getDeclaringType().getActualClass();
+	//		for (Method m : RtHelper.getAllMethods(c)) {
+	//			if (!getSimpleName().equals(m.getName())) {
+	//				continue;
+	//			}
+	//			if (getParameterTypes().size() != m.getParameterTypes().length) {
+	//				continue;
+	//			}
+	//			int i = 0;
+	//			for (Class<?> t : m.getParameterTypes()) {
+	//				if (t != getParameterTypes().get(i).getActualClass()) {
+	//					break;
+	//				}
+	//				i++;
+	//			}
+	//			if (i == getParameterTypes().size()) {
+	//				m.setAccessible(true);
+	//				return m.getAnnotations();
+	//			}
+	//		}
+	//		return null;
+	//	}
 
+	@Override
 	@SuppressWarnings("unchecked")
 	public CtExecutable<T> getDeclaration() {
-		CtType<?> typeDecl = (CtType<?>) getDeclaringType().getDeclaration();
+		CtType<?> typeDecl = getDeclaringType().getDeclaration();
 		if (typeDecl == null) {
 			return null;
 		}
@@ -149,16 +154,18 @@ public class CtExecutableReferenceImpl<T> extends CtReferenceImpl implements
 						.getConstructor(parameters.toArray(
 								new CtTypeReferenceImpl<?>[parameters.size()]));
 			} catch (ClassCastException e) {
-				Launcher.logger.error(e.getMessage(), e);
+				Launcher.LOGGER.error(e.getMessage(), e);
 			}
 		}
 		return method;
 	}
 
+	@Override
 	public CtTypeReference<?> getDeclaringType() {
 		return declaringType;
 	}
 
+	@Override
 	public CtTypeReference<T> getType() {
 		return type;
 	}
@@ -169,20 +176,22 @@ public class CtExecutableReferenceImpl<T> extends CtReferenceImpl implements
 	}
 
 	@Override
-	public void setParameters(List<CtTypeReference<?>> parameters) {
-		if (this.parameters == CtElementImpl.<CtTypeReference<?>> EMPTY_LIST()) {
+	public <C extends CtExecutableReference<T>> C setParameters(List<CtTypeReference<?>> parameters) {
+		if (this.parameters == CtElementImpl.<CtTypeReference<?>>emptyList()) {
 			this.parameters = new ArrayList<CtTypeReference<?>>();
 			this.parameters.addAll(parameters);
 		}
+		return (C) this;
 	}
 
+	@Override
 	@SuppressWarnings("unchecked")
 	public <S extends T> CtExecutableReference<S> getOverridingExecutable(
 			CtTypeReference<?> subType) {
 		if ((subType == null) || subType.equals(getDeclaringType())) {
 			return null;
 		}
-		CtType<?> t = (CtType<?>) subType.getDeclaration();
+		CtType<?> t = subType.getDeclaration();
 		if (t == null) {
 			return null;
 		}
@@ -198,45 +207,50 @@ public class CtExecutableReferenceImpl<T> extends CtReferenceImpl implements
 		return getOverridingExecutable(c.getSuperclass());
 	}
 
+	@Override
 	public boolean isOverriding(CtExecutableReference<?> executable) {
 		if (!this.getDeclaringType().isSubtypeOf(executable.getDeclaringType())) {
 			return false;
 		}
-		if (!getSimpleName().equals(executable.getSimpleName())) {
-			return false;
-		}
-		return true;
+		return getSimpleName().equals(executable.getSimpleName());
 	}
 
-	public void setActualTypeArguments(
+	@Override
+	public <C extends CtGenericElementReference> C setActualTypeArguments(
 			List<CtTypeReference<?>> actualTypeArguments) {
 		this.actualTypeArguments = actualTypeArguments;
+		return (C) this;
 	}
 
-	public void setDeclaringType(CtTypeReference<?> declaringType) {
+	@Override
+	public <C extends CtExecutableReference<T>> C setDeclaringType(CtTypeReference<?> declaringType) {
 		this.declaringType = declaringType;
+		return (C) this;
 	}
 
-	public void setType(CtTypeReference<T> type) {
+	@Override
+	public <C extends CtExecutableReference<T>> C setType(CtTypeReference<T> type) {
 		this.type = type;
+		return (C) this;
 	}
 
 	@Override
 	protected AnnotatedElement getActualAnnotatedElement() {
-		if(isConstructor()) {
+		if (isConstructor()) {
 			return getActualConstructor();
 		} else {
 			return getActualMethod();
 		}
 	}
-	
+
+	@Override
 	public Method getActualMethod() {
 		List<CtTypeReference<?>> parameters = this.getParameters();
-		
+
 		method_loop:
 		for (Method m : getDeclaringType().getActualClass().getDeclaredMethods()) {
-			if (!m.getDeclaringClass().isSynthetic() &&
-					m.isSynthetic()) {
+			if (!m.getDeclaringClass().isSynthetic()
+					&& m.isSynthetic()) {
 				continue;
 			}
 			if (!m.getName().equals(getSimpleName())) {
@@ -250,7 +264,7 @@ public class CtExecutableReferenceImpl<T> extends CtReferenceImpl implements
 					continue method_loop;
 				}
 			}
-			
+
 			return m;
 		}
 		return null;
@@ -258,7 +272,7 @@ public class CtExecutableReferenceImpl<T> extends CtReferenceImpl implements
 
 	public Constructor<?> getActualConstructor() {
 		List<CtTypeReference<?>> parameters = this.getParameters();
-		
+
 		constructor_loop:
 		for (Constructor<?> c : getDeclaringType().getActualClass().getDeclaredConstructors()) {
 			if (c.getParameterTypes().length != parameters.size()) {
@@ -276,54 +290,15 @@ public class CtExecutableReferenceImpl<T> extends CtReferenceImpl implements
 
 	public boolean isStatic() {
 		return stat;
-		// CtExecutable<?> e = getDeclaration();
-		// if (e != null) {
-		// return e.getModifiers().contains(ModifierKind.STATIC);
-		// }
-		// try {
-		// Class declaringClass = Class.forName(getDeclaringType()
-		// .getQualifiedName());
-		//
-		// List<CtTypeReference<?>> paramsRef = getParameterTypes();
-		//
-		// for (Method m : declaringClass.getMethods()) {
-		// if (m.getName().equals(getSimpleName())) {
-		// int count = 0;
-		// int i = 0;
-		// Class[] params = m.getParameterTypes();
-		// for (; i < params.length && i < paramsRef.size()
-		// && i == count; i++) {
-		// if (params[i] == paramsRef.get((i)).getActualClass()) {
-		// count++;
-		// }
-		// }
-		//
-		// if (count == i) {
-		// return Modifier.isStatic(m.getModifiers());
-		// } else {
-		// if (count == params.length - 1) {
-		// for (; i < paramsRef.size() && i == count + 1; i++) {
-		// if (paramsRef.get(i).getActualClass() == params[params.length - 1]
-		// .getComponentType())
-		// count++;
-		// }
-		// if (i == count + 1)
-		// return Modifier.isStatic(m.getModifiers());
-		// }
-		// }
-		// }
-		// }
-		// } catch (Exception e1) {
-		// Launcher.logger.error(e1.getMessage(), e1);
-		// }
-		//
-		// return false;
 	}
 
-	public void setStatic(boolean b) {
+	@Override
+	public <C extends CtExecutableReference<T>> C setStatic(boolean b) {
 		this.stat = b;
+		return (C) this;
 	}
 
+	@Override
 	public boolean isFinal() {
 		CtExecutable<T> e = getDeclaration();
 		if (e != null) {
@@ -346,7 +321,7 @@ public class CtExecutableReferenceImpl<T> extends CtReferenceImpl implements
 			} else if (e instanceof CtConstructor) {
 				return ((CtConstructor<T>) e).getModifiers();
 			}
-			return CtElementImpl.EMPTY_SET();
+			return CtElementImpl.emptySet();
 		}
 		Method m = getActualMethod();
 		if (m != null) {
@@ -359,10 +334,10 @@ public class CtExecutableReferenceImpl<T> extends CtReferenceImpl implements
 		return new TreeSet<ModifierKind>();
 	}
 
+	@Override
 	public CtExecutableReference<?> getOverridingExecutable() {
 		CtTypeReference<?> st = getDeclaringType().getSuperclass();
-		CtTypeReference<Object> objectType = getFactory().Type()
-				.createReference(Object.class);
+		CtTypeReference<Object> objectType = getFactory().Type().createReference(Object.class);
 		if (st == null) {
 			return getOverloadedExecutable(objectType, objectType);
 		}
@@ -389,21 +364,20 @@ public class CtExecutableReferenceImpl<T> extends CtReferenceImpl implements
 		return getOverloadedExecutable(t.getSuperclass(), objectType);
 	}
 
-	public boolean addActualTypeArgument(CtTypeReference<?> actualTypeArgument) {
-		if (actualTypeArguments == CtElementImpl
-				.<CtTypeReference<?>> EMPTY_LIST()) {
+	@Override
+	public <C extends CtGenericElementReference> C addActualTypeArgument(CtTypeReference<?> actualTypeArgument) {
+		if (actualTypeArguments == CtElementImpl.<CtTypeReference<?>>emptyList()) {
 			actualTypeArguments = new ArrayList<CtTypeReference<?>>(
 					METHOD_TYPE_PARAMETERS_CONTAINER_DEFAULT_CAPACITY);
 		}
-		return actualTypeArguments.add(actualTypeArgument);
+		actualTypeArguments.add(actualTypeArgument);
+		return (C) this;
 	}
 
 	@Override
 	public boolean removeActualTypeArgument(
 			CtTypeReference<?> actualTypeArgument) {
-		return actualTypeArguments !=
-				CtElementImpl.<CtTypeReference<?>>EMPTY_LIST() &&
-				actualTypeArguments.remove(actualTypeArgument);
+		return actualTypeArguments != CtElementImpl.<CtTypeReference<?>>emptyList()
+				&& actualTypeArguments.remove(actualTypeArgument);
 	}
-
 }

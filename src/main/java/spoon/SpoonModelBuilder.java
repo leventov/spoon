@@ -1,16 +1,16 @@
-/* 
+/*
  * Spoon - http://spoon.gforge.inria.fr/
  * Copyright (C) 2006 INRIA Futurs <renaud.pawlak@inria.fr>
- * 
+ *
  * This software is governed by the CeCILL-C License under French law and
- * abiding by the rules of distribution of free software. You can use, modify 
- * and/or redistribute the software under the terms of the CeCILL-C license as 
- * circulated by CEA, CNRS and INRIA at http://www.cecill.info. 
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT 
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or 
+ * abiding by the rules of distribution of free software. You can use, modify
+ * and/or redistribute the software under the terms of the CeCILL-C license as
+ * circulated by CEA, CNRS and INRIA at http://www.cecill.info.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE. See the CeCILL-C License for more details.
- *  
+ *
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
@@ -18,22 +18,25 @@
 package spoon;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
 import spoon.compiler.SpoonResource;
+import spoon.processing.Processor;
+import spoon.reflect.declaration.CtElement;
 import spoon.reflect.factory.Factory;
 
 /**
  * Responsible for building a spoon model from Java source code.
- * 
+ *
  * <p>
  * The Spoon model (see {@link Factory} is built from input sources given as
  * files. Use {@link #build()} to create the Spoon model.
  * Once the model is built and stored in the factory, it
  * can be processed by using a {@link #process(List)}.
  * </p>
- * 
+ *
  * <p>
  * Create an instance of the default implementation of the Spoon compiler by
  * using {@link spoon.Launcher#createCompiler()}. For example:
@@ -44,45 +47,45 @@ public interface SpoonModelBuilder {
 	/**
 	 * Adds a file/directory to be built. By default, the files could be Java
 	 * source files or Jar files. Directories are processed recursively.
-	 * 
+	 *
 	 * @param source
-	 *            file or directory to add
+	 * 		file or directory to add
 	 */
 	void addInputSource(File source);
 
 	/**
-	 * Sets the destination directory for the class files.
-	 * 
-	 * @param destinationDirectory
-	 *            destination directory
+	 * Sets the output directory for binary generated.
+	 *
+	 * @param binaryOutputDirectory
+	 * 		{@link File} for binary output directory.
 	 */
-	void setDestinationDirectory(File destinationDirectory);
+	void setBinaryOutputDirectory(File binaryOutputDirectory);
 
 	/**
-	 * Gets the output directory of this compiler.
+	 * Gets the binary output directory of the compiler.
 	 */
-	File getDestinationDirectory();
+	File getBinaryOutputDirectory();
 
 	/**
-	 * Sets the output directory for the source files.
-	 * 
+	 * Sets the output directory for source generated.
+	 *
 	 * @param outputDirectory
-	 *            output directory
+	 * 		{@link File} for output directory.
 	 */
-	void setOutputDirectory(File outputDirectory);
+	void setSourceOutputDirectory(File outputDirectory);
 
 	/**
 	 * Gets the output directory of this compiler.
 	 */
-	File getOutputDirectory();
+	File getSourceOutputDirectory();
 
 	/**
 	 * Adds a file/directory (as a CtResource) to be built. By default, the
 	 * files could be Java source files or Jar files. Directories are processed
 	 * recursively.
-	 * 
+	 *
 	 * @param source
-	 *            file or directory to add
+	 * 		file or directory to add
 	 */
 	void addInputSource(SpoonResource source);
 
@@ -98,9 +101,9 @@ public interface SpoonModelBuilder {
 	 * Directories are processed recursively. Templates are set apart from the
 	 * program to be processed for logical reasons. However, if a template was
 	 * needed to be processed, it could be added as an input source.
-	 * 
+	 *
 	 * @param source
-	 *            file or directory to add
+	 * 		file or directory to add
 	 */
 	void addTemplateSource(File source);
 
@@ -111,9 +114,9 @@ public interface SpoonModelBuilder {
 	 * apart from the program to be processed for logical reasons. However, if a
 	 * template was needed to be processed, it could be added as an input
 	 * source.
-	 * 
+	 *
 	 * @param source
-	 *            file or directory to add
+	 * 		file or directory to add
 	 */
 	void addTemplateSource(SpoonResource source);
 
@@ -131,13 +134,11 @@ public interface SpoonModelBuilder {
 	 * Builds the program's model with this compiler's factory and stores the
 	 * result into this factory. Note that this method should only be used once
 	 * on a given factory.
-	 * 
+	 *
 	 * @return true if the Java was successfully compiled with the core Java
-	 *         compiler, false if some errors were encountered while compiling
-	 * 
-	 * @exception spoon.SpoonException
-	 *                when a building problem occurs
-	 * 
+	 * compiler, false if some errors were encountered while compiling
+	 * @throws spoon.SpoonException
+	 * 		when a building problem occurs
 	 * @see #getSourceClasspath()
 	 * @see #getTemplateClasspath()
 	 */
@@ -149,35 +150,40 @@ public interface SpoonModelBuilder {
 	void process(List<String> processorTypes);
 
 	/**
+	 * Processes the Java model with the given processors.
+	 */
+	void process(Collection<Processor<? extends CtElement>> processors);
+
+	/**
 	 * Generates the source code associated to the classes stored in this
 	 * compiler's factory. The source code is generated in the directory given
-	 * by {@link #getOutputDirectory()}.
-	 * 
+	 * by {@link #getSourceOutputDirectory()}.
+	 *
 	 * @param outputType
-	 *            the output method
+	 * 		the output method
 	 */
 	void generateProcessedSourceFiles(OutputType outputType);
 
 	/**
 	 * Generates the bytecode associated to the classes stored in this
 	 * compiler's factory. The bytecode is generated in the directory given by
-	 * {@link #getDestinationDirectory()}.
-	 * 
+	 * {@link #getBinaryOutputDirectory()}.
+	 *
 	 * @see #getSourceClasspath()
 	 */
 	boolean compile();
 
 	/**
 	 * Generates the bytecode by compiling the input sources. The bytecode is
-	 * generated in the directory given by {@link #getDestinationDirectory()}.
-	 * 
+	 * generated in the directory given by {@link #getBinaryOutputDirectory()}.
+	 *
 	 * @see #getSourceClasspath()
 	 */
 	boolean compileInputSources();
 
 	/**
 	 * Gets the classpath that is used to build/compile the input sources.
-	 * 
+	 *
 	 * @see #compileInputSources()
 	 * @see #build()
 	 * @see #compile()
@@ -186,15 +192,14 @@ public interface SpoonModelBuilder {
 
 	/**
 	 * Sets the classpath that is used to build/compile the input sources.
-	 * 
+	 *
 	 * Each element of the array is either a jar file or a folder containing bytecode files.
-	 * 
 	 */
 	void setSourceClasspath(String... classpath);
 
 	/**
 	 * Gets the classpath that is used to build the template sources.
-	 * 
+	 *
 	 * See {@link #setSourceClasspath} for the meaning of the returned string.
 	 */
 	String[] getTemplateClasspath();
@@ -229,7 +234,9 @@ public interface SpoonModelBuilder {
 	 */
 	String getEncoding();
 
-	/** Returns the working factory */
+	/**
+	 * Returns the working factory
+	 */
 	Factory getFactory();
 
 }

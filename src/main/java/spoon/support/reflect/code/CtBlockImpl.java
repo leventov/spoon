@@ -1,26 +1,21 @@
-/* 
+/*
  * Spoon - http://spoon.gforge.inria.fr/
  * Copyright (C) 2006 INRIA Futurs <renaud.pawlak@inria.fr>
- * 
+ *
  * This software is governed by the CeCILL-C License under French law and
- * abiding by the rules of distribution of free software. You can use, modify 
- * and/or redistribute the software under the terms of the CeCILL-C license as 
- * circulated by CEA, CNRS and INRIA at http://www.cecill.info. 
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT 
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or 
+ * abiding by the rules of distribution of free software. You can use, modify
+ * and/or redistribute the software under the terms of the CeCILL-C license as
+ * circulated by CEA, CNRS and INRIA at http://www.cecill.info.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE. See the CeCILL-C License for more details.
- *  
+ *
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
 
 package spoon.support.reflect.code;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
 
 import spoon.reflect.code.CtBlock;
 import spoon.reflect.code.CtCodeElement;
@@ -28,33 +23,38 @@ import spoon.reflect.code.CtInvocation;
 import spoon.reflect.code.CtStatement;
 import spoon.reflect.code.CtStatementList;
 import spoon.reflect.declaration.CtConstructor;
+import spoon.reflect.declaration.CtElement;
 import spoon.reflect.declaration.CtType;
+import spoon.reflect.declaration.ParentNotInitializedException;
 import spoon.reflect.visitor.CtVisitor;
 import spoon.reflect.visitor.Filter;
 import spoon.reflect.visitor.Query;
 import spoon.support.reflect.declaration.CtElementImpl;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 
 import static spoon.reflect.ModelElementContainerDefaultCapacities.BLOCK_STATEMENTS_CONTAINER_DEFAULT_CAPACITY;
 
 public class CtBlockImpl<R> extends CtStatementImpl implements CtBlock<R> {
 	private static final long serialVersionUID = 1L;
 
-	private List<CtStatement> statements = EMPTY_LIST();
+	private List<CtStatement> statements = emptyList();
 
 	public void accept(CtVisitor visitor) {
 		visitor.visitCtBlock(this);
 	}
 
+	@Override
 	public List<CtStatement> getStatements() {
 		ensureModifiableStatementsList();
 		return this.statements;
 	}
 
-	public CtStatementList toStatementList() {
-		return getFactory().Code().createStatementList(this);
-	}
-
 	@SuppressWarnings("unchecked")
+	@Override
 	public <T extends CtStatement> T getStatement(int i) {
 		return (T) statements.get(i);
 	}
@@ -65,109 +65,125 @@ public class CtBlockImpl<R> extends CtStatementImpl implements CtBlock<R> {
 		return (T) statements.get(statements.size() - 1);
 	}
 
-	public void insertBegin(CtStatementList statements) {
+	@Override
+	public <T extends CtBlock<R>> T insertBegin(CtStatementList statements) {
 		if (getParent() != null
 				&& getParent() instanceof CtConstructor
 				&& getStatements().size() > 0) {
 			CtStatement first = getStatements().get(0);
 			if (first instanceof CtInvocation
 					&& ((CtInvocation<?>) first).getExecutable()
-							.getSimpleName().startsWith("<init>")) {
+												.getSimpleName()
+												.startsWith("<init>")) {
 				first.insertAfter(statements);
-				return;
+				return (T) this;
 			}
 		}
-		if (this.statements == CtElementImpl.<CtStatement> EMPTY_LIST()) {
+		if (this.statements == CtElementImpl.<CtStatement>emptyList()) {
 			this.statements = new ArrayList<CtStatement>(
-					statements.getStatements().size() +
-							BLOCK_STATEMENTS_CONTAINER_DEFAULT_CAPACITY);
+					statements.getStatements().size()
+							+ BLOCK_STATEMENTS_CONTAINER_DEFAULT_CAPACITY);
 		}
 		this.statements.addAll(0, statements.getStatements());
+		return (T) this;
 	}
 
-	public void insertBegin(CtStatement statement) {
-		if (getParent() != null
-				&& getParent() instanceof CtConstructor
-				&& getStatements().size() > 0) {
-			CtStatement first = getStatements().get(0);
-			if (first instanceof CtInvocation
-					&& ((CtInvocation<?>) first).getExecutable()
-							.getSimpleName().startsWith("<init>")) {
-				first.insertAfter(statement);
-				return;
+	@Override
+	public <T extends CtBlock<R>> T insertBegin(CtStatement statement) {
+		try {
+			if (getParent() != null
+					&& getParent() instanceof CtConstructor
+					&& getStatements().size() > 0) {
+				CtStatement first = getStatements().get(0);
+				if (first instanceof CtInvocation
+						&& ((CtInvocation<?>) first)
+						.getExecutable().getSimpleName()
+						.startsWith("<init>")) {
+					first.insertAfter(statement);
+					return (T) this;
+				}
 			}
+		} catch (ParentNotInitializedException ignore) {
+			// CtBlock hasn't a parent. So, it isn't in a constructor.
 		}
 		ensureModifiableStatementsList();
 		this.statements.add(0, statement);
+		return (T) this;
 	}
 
-	public void insertEnd(CtStatement statement) {
+	@Override
+	public <T extends CtBlock<R>> T insertEnd(CtStatement statement) {
 		ensureModifiableStatementsList();
 		addStatement(statement);
+		return (T) this;
 	}
 
-	public void insertEnd(CtStatementList statements) {
+	@Override
+	public <T extends CtBlock<R>> T insertEnd(CtStatementList statements) {
 		for (CtStatement s : statements.getStatements()) {
 			insertEnd(s);
 		}
+		return (T) this;
 	}
 
-	public void insertAfter(Filter<? extends CtStatement> insertionPoints,
-			CtStatement statement) {
+	@Override
+	public <T extends CtBlock<R>> T insertAfter(Filter<? extends CtStatement> insertionPoints,
+												CtStatement statement) {
 		for (CtStatement e : Query.getElements(this, insertionPoints)) {
 			e.insertAfter(statement);
 		}
+		return (T) this;
 	}
 
-	public void insertAfter(Filter<? extends CtStatement> insertionPoints,
+	@Override
+	public <T extends CtBlock<R>> T insertAfter(
+			Filter<? extends CtStatement> insertionPoints,
 			CtStatementList statements) {
 		for (CtStatement e : Query.getElements(this, insertionPoints)) {
 			e.insertAfter(statements);
 		}
+		return (T) this;
 	}
 
-	public void insertBefore(Filter<? extends CtStatement> insertionPoints,
+	@Override
+	public <T extends CtBlock<R>> T insertBefore(
+			Filter<? extends CtStatement> insertionPoints,
 			CtStatement statement) {
 		for (CtStatement e : Query.getElements(this, insertionPoints)) {
 			e.insertBefore(statement);
 		}
+		return (T) this;
 	}
 
-	public void insertBefore(Filter<? extends CtStatement> insertionPoints,
+	@Override
+	public <T extends CtBlock<R>> T insertBefore(
+			Filter<? extends CtStatement> insertionPoints,
 			CtStatementList statements) {
 		for (CtStatement e : Query.getElements(this, insertionPoints)) {
 			e.insertBefore(statements);
 		}
-	}
-
-	public void setStatements(List<CtStatement> statements) {
-		this.statements.clear();
-		for(CtStatement s:statements) {
-			addStatement(s);
-		}
-	}
-
-	public R S() {
-		return null;
-	}
-
-	public void R(R value) {
-
-	}
-
-	public CtCodeElement getSubstitution(CtType<?> targetType) {
-		return getFactory().Core().clone(this);
+		return (T) this;
 	}
 
 	@Override
-	public void addStatement(CtStatement statement) {
+	public <T extends CtStatementList> T setStatements(List<CtStatement> statements) {
+		this.statements.clear();
+		for (CtStatement s : statements) {
+			addStatement(s);
+		}
+		return (T) this;
+	}
+
+	@Override
+	public <T extends CtStatementList> T addStatement(CtStatement statement) {
 		ensureModifiableStatementsList();
 		statement.setParent(this);
 		this.statements.add(statement);
+		return (T) this;
 	}
 
 	private void ensureModifiableStatementsList() {
-		if (this.statements == CtElementImpl.<CtStatement> EMPTY_LIST()) {
+		if (this.statements == CtElementImpl.<CtStatement>emptyList()) {
 			this.statements = new ArrayList<CtStatement>(
 					BLOCK_STATEMENTS_CONTAINER_DEFAULT_CAPACITY);
 		}
@@ -175,7 +191,7 @@ public class CtBlockImpl<R> extends CtStatementImpl implements CtBlock<R> {
 
 	@Override
 	public void removeStatement(CtStatement statement) {
-		if (this.statements != CtElementImpl.<CtStatement> EMPTY_LIST()) {
+		if (this.statements != CtElementImpl.<CtStatement>emptyList()) {
 			this.statements.remove(statement);
 		}
 	}
@@ -185,8 +201,20 @@ public class CtBlockImpl<R> extends CtStatementImpl implements CtBlock<R> {
 		// we have to both create a defensive object and an unmodifiable list
 		// with only Collections.unmodifiableList you can modify the defensive object
 		// with only new ArrayList it breaks the encapsulation
-		return Collections.unmodifiableList(
-				new ArrayList<CtStatement>(getStatements())).iterator();
+		return Collections.unmodifiableList(new ArrayList<CtStatement>(getStatements())).iterator();
 	}
 
+	@Override
+	public <T extends R> void replace(CtBlock<T> element) {
+		replace((CtElement) element);
+	}
+
+	@Override
+	public R S() {
+		return null;
+	}
+
+	public CtCodeElement getSubstitution(CtType<?> targetType) {
+		return getFactory().Core().clone(this);
+	}
 }

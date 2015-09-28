@@ -1,16 +1,16 @@
-/* 
+/*
  * Spoon - http://spoon.gforge.inria.fr/
  * Copyright (C) 2006 INRIA Futurs <renaud.pawlak@inria.fr>
- * 
+ *
  * This software is governed by the CeCILL-C License under French law and
- * abiding by the rules of distribution of free software. You can use, modify 
- * and/or redistribute the software under the terms of the CeCILL-C license as 
- * circulated by CEA, CNRS and INRIA at http://www.cecill.info. 
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT 
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or 
+ * abiding by the rules of distribution of free software. You can use, modify
+ * and/or redistribute the software under the terms of the CeCILL-C license as
+ * circulated by CEA, CNRS and INRIA at http://www.cecill.info.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE. See the CeCILL-C License for more details.
- *  
+ *
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
@@ -19,8 +19,6 @@ package spoon.support.visitor;
 
 import java.lang.annotation.Annotation;
 import java.util.List;
-
-import org.apache.log4j.Logger;
 
 import spoon.reflect.code.CtAnnotationFieldAccess;
 import spoon.reflect.code.CtArrayAccess;
@@ -67,8 +65,8 @@ import spoon.reflect.code.CtTry;
 import spoon.reflect.code.CtTryWithResource;
 import spoon.reflect.code.CtTypeAccess;
 import spoon.reflect.code.CtUnaryOperator;
-import spoon.reflect.code.CtVariableRead;
 import spoon.reflect.code.CtVariableAccess;
+import spoon.reflect.code.CtVariableRead;
 import spoon.reflect.code.CtVariableWrite;
 import spoon.reflect.code.CtWhile;
 import spoon.reflect.declaration.CtAnnotation;
@@ -99,8 +97,6 @@ import spoon.reflect.reference.CtUnboundVariableReference;
 import spoon.reflect.visitor.CtVisitor;
 
 public class SignaturePrinter implements CtVisitor {
-	private static final Logger logger = Logger
-			.getLogger(SignaturePrinter.class);
 
 	StringBuffer signature;
 
@@ -118,13 +114,15 @@ public class SignaturePrinter implements CtVisitor {
 	}
 
 	public void scan(CtElement e) {
-		if (e != null)
+		if (e != null) {
 			e.accept(this);
+		}
 	}
 
 	public void scan(CtReference e) {
-		if (e != null)
+		if (e != null) {
 			e.accept(this);
+		}
 	}
 
 	protected SignaturePrinter write(String value) {
@@ -216,8 +214,9 @@ public class SignaturePrinter implements CtVisitor {
 
 	public void visitCtBreak(CtBreak breakStatement) {
 		write("break ");
-		if (breakStatement.getTargetLabel() != null)
+		if (breakStatement.getTargetLabel() != null) {
 			write(breakStatement.getTargetLabel());
+		}
 	}
 
 	public <E> void visitCtCase(CtCase<E> caseStatement) {
@@ -251,8 +250,9 @@ public class SignaturePrinter implements CtVisitor {
 			scan(p.getType());
 			write(",");
 		}
-		if (!c.getParameters().isEmpty())
+		if (!c.getParameters().isEmpty()) {
 			clearLast();
+		}
 		write(")");
 	}
 
@@ -273,20 +273,24 @@ public class SignaturePrinter implements CtVisitor {
 		write("enum ").write(ctEnum.getQualifiedName());
 	}
 
-	public <T> void visitCtExecutableReference(
-			CtExecutableReference<T> reference) {
-		if (reference.getDeclaringType()!=null) { // null in noclasspath
-		  write(reference.getDeclaringType().getQualifiedName());
-		}
+	public <T> void visitCtExecutableReference(CtExecutableReference<T> reference) {
+		scan(reference.getDeclaringType());
+
 		write(CtExecutable.EXECUTABLE_SEPARATOR);
-		write(reference.getSimpleName());
-		write("(");
-		for (CtTypeReference<?> ref : reference.getActualTypeArguments()) {
-			scan(ref);
-			write(",");
+		if (reference.isConstructor()) {
+			write(reference.getDeclaringType().getSimpleName());
+		} else {
+			write(reference.getSimpleName());
 		}
-		if (!reference.getActualTypeArguments().isEmpty())
+		write("(");
+		if (reference.getParameters().size() > 0) {
+			for (CtTypeReference<?> param : reference.getParameters()) {
+				scan(param);
+				write(", ");
+			}
 			clearLast();
+			clearLast();
+		}
 		write(")");
 	}
 
@@ -305,12 +309,13 @@ public class SignaturePrinter implements CtVisitor {
 	}
 
 	public <T> void visitCtFieldReference(CtFieldReference<T> reference) {
-		if(reference.getType() != null)
+		if (reference.getType() != null) {
 			write(reference.getType().getQualifiedName());
-		else
+		} else {
 			write("<no type>");
+		}
 		write(" ");
-		if (reference.getDeclaringType()!=null) {
+		if (reference.getDeclaringType() != null) {
 			write(reference.getDeclaringType().getQualifiedName());
 			write(CtField.FIELD_SEPARATOR);
 		}
@@ -323,8 +328,9 @@ public class SignaturePrinter implements CtVisitor {
 			scan(s);
 			write(",");
 		}
-		if (!forLoop.getForInit().isEmpty())
+		if (!forLoop.getForInit().isEmpty()) {
 			clearLast();
+		}
 		write(";");
 		scan(forLoop.getExpression());
 		write(";");
@@ -332,8 +338,9 @@ public class SignaturePrinter implements CtVisitor {
 			scan(s);
 			write(",");
 		}
-		if (!forLoop.getForUpdate().isEmpty())
+		if (!forLoop.getForUpdate().isEmpty()) {
 			clearLast();
+		}
 		write(")");
 		scan(forLoop.getBody());
 	}
@@ -365,10 +372,10 @@ public class SignaturePrinter implements CtVisitor {
 		write("(");
 		scan(invocation.getExecutable());
 		write("(");
-		for(int i = 0; i < invocation.getArguments().size();i++){
+		for (int i = 0; i < invocation.getArguments().size(); i++) {
 			CtExpression<?> arg_i = invocation.getArguments().get(i);
 			scan(arg_i);
-			if(i != (invocation.getArguments().size() -1) ){
+			if (i != (invocation.getArguments().size() - 1)) {
 				write(",");
 			}
 		}
@@ -377,9 +384,11 @@ public class SignaturePrinter implements CtVisitor {
 	}
 
 	public <T> void visitCtLiteral(CtLiteral<T> literal) {
-		if (literal.getValue() != null)
+		if (literal.getValue() != null) {
 			write(literal.toString());
-		else write("null");
+		} else {
+			write("null");
+		}
 	}
 
 	public <T> void visitCtLocalVariable(CtLocalVariable<T> localVariable) {
@@ -390,7 +399,7 @@ public class SignaturePrinter implements CtVisitor {
 			CtLocalVariableReference<T> reference) {
 		write(reference.getType().getQualifiedName()).write(" ");
 		write(reference.getSimpleName());
-		
+
 	}
 
 	@Override
@@ -416,8 +425,9 @@ public class SignaturePrinter implements CtVisitor {
 			scan(p.getType());
 			write(",");
 		}
-		if (!m.getParameters().isEmpty())
+		if (!m.getParameters().isEmpty()) {
 			clearLast();
+		}
 		write(")");
 	}
 
@@ -456,8 +466,9 @@ public class SignaturePrinter implements CtVisitor {
 			scan(e);
 			write(",");
 		}
-		if (!newArray.getElements().isEmpty())
+		if (!newArray.getElements().isEmpty()) {
 			clearLast();
+		}
 		write("}");
 	}
 
@@ -489,7 +500,8 @@ public class SignaturePrinter implements CtVisitor {
 	}
 
 	@Override
-	public <T, E extends CtExpression<?>> void visitCtExecutableReferenceExpression(CtExecutableReferenceExpression<T, E> expression) {
+	public <T, E extends CtExpression<?>> void visitCtExecutableReferenceExpression(
+			CtExecutableReferenceExpression<T, E> expression) {
 		write(expression.toString());
 	}
 
@@ -542,8 +554,9 @@ public class SignaturePrinter implements CtVisitor {
 		write("switch(");
 		scan(switchStatement.getSelector());
 		write(")");
-		for (CtCase<?> c : switchStatement.getCases())
+		for (CtCase<?> c : switchStatement.getCases()) {
 			scan(c);
+		}
 	}
 
 	public void visitCtSynchronized(CtSynchronized synchro) {
@@ -583,7 +596,7 @@ public class SignaturePrinter implements CtVisitor {
 
 	public void visitCtTypeParameter(CtTypeParameter typeParameter) {
 		write("<");
-		write(typeParameter.getName());
+		write(typeParameter.getSimpleName());
 		write(">");
 	}
 

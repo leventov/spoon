@@ -1,16 +1,16 @@
-/* 
+/*
  * Spoon - http://spoon.gforge.inria.fr/
  * Copyright (C) 2006 INRIA Futurs <renaud.pawlak@inria.fr>
- * 
+ *
  * This software is governed by the CeCILL-C License under French law and
- * abiding by the rules of distribution of free software. You can use, modify 
- * and/or redistribute the software under the terms of the CeCILL-C license as 
- * circulated by CEA, CNRS and INRIA at http://www.cecill.info. 
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT 
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or 
+ * abiding by the rules of distribution of free software. You can use, modify
+ * and/or redistribute the software under the terms of the CeCILL-C license as
+ * circulated by CEA, CNRS and INRIA at http://www.cecill.info.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE. See the CeCILL-C License for more details.
- *  
+ *
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
@@ -33,7 +33,7 @@ public interface CtExecutable<R> extends CtNamedElement, CtTypedElement<R> {
 	/**
 	 * The separator for a string representation of an executable.
 	 */
-	public static final String EXECUTABLE_SEPARATOR = "#";
+	String EXECUTABLE_SEPARATOR = "#";
 
 	/*
 	 * (non-Javadoc)
@@ -50,7 +50,7 @@ public interface CtExecutable<R> extends CtNamedElement, CtTypedElement<R> {
 	/**
 	 * Sets the body expression.
 	 */
-	<B extends R> void setBody(CtBlock<B> body);
+	<B extends R, T extends CtExecutable<R>> T setBody(CtBlock<B> body);
 
 	/**
 	 * Gets the parameters list.
@@ -60,7 +60,7 @@ public interface CtExecutable<R> extends CtNamedElement, CtTypedElement<R> {
 	/**
 	 * Sets the parameters.
 	 */
-	void setParameters(List<CtParameter<?>> parameters);
+	<T extends CtExecutable<R>> T setParameters(List<CtParameter<?>> parameters);
 
 	/**
 	 * Add a parameter for this executable
@@ -68,7 +68,7 @@ public interface CtExecutable<R> extends CtNamedElement, CtTypedElement<R> {
 	 * @param parameter
 	 * @return <tt>true</tt> if this element changed as a result of the call
 	 */
-	boolean addParameter(CtParameter<?> parameter);
+	<T extends CtExecutable<R>> T addParameter(CtParameter<?> parameter);
 
 	/**
 	 * Remove a parameter for this executable
@@ -87,7 +87,7 @@ public interface CtExecutable<R> extends CtNamedElement, CtTypedElement<R> {
 	/**
 	 * Sets the thrown types.
 	 */
-	void setThrownTypes(Set<CtTypeReference<? extends Throwable>> thrownTypes);
+	<T extends CtExecutable<R>> T setThrownTypes(Set<CtTypeReference<? extends Throwable>> thrownTypes);
 
 	/**
 	 * add a thrown type.
@@ -95,7 +95,7 @@ public interface CtExecutable<R> extends CtNamedElement, CtTypedElement<R> {
 	 * @param throwType
 	 * @return <tt>true</tt> if this element changed as a result of the call
 	 */
-	boolean addThrownType(CtTypeReference<? extends Throwable> throwType);
+	<T extends CtExecutable<R>> T addThrownType(CtTypeReference<? extends Throwable> throwType);
 
 	/**
 	 * remove a thrown type.

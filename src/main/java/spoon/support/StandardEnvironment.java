@@ -30,9 +30,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.xml.sax.SAXException;
 
+import spoon.SpoonException;
 import spoon.compiler.Environment;
 import spoon.compiler.InvalidClassPathException;
 import spoon.compiler.SpoonFile;
@@ -42,7 +44,6 @@ import spoon.processing.ProblemFixer;
 import spoon.processing.ProcessingManager;
 import spoon.processing.Processor;
 import spoon.processing.ProcessorProperties;
-import spoon.processing.Severity;
 import spoon.reflect.cu.SourcePosition;
 import spoon.reflect.declaration.CtElement;
 import spoon.reflect.declaration.CtExecutable;
@@ -58,16 +59,12 @@ import spoon.support.processing.XmlProcessorProperties;
  */
 public class StandardEnvironment implements Serializable, Environment {
 
-	Logger logger = Logger.getLogger(StandardEnvironment.class);
-
 	/**
 	 * The processors' properties files extension (.xml)
 	 */
 	public static final String PROPERTIES_EXT = ".xml";
 
 	private static final long serialVersionUID = 1L;
-
-	private boolean debug = false;
 
 	private FileGenerator<? extends CtElement> defaultFileGenerator;
 
@@ -79,8 +76,6 @@ public class StandardEnvironment implements Serializable, Environment {
 
 	private boolean processingStopped = false;
 
-	private boolean verbose = false;
-
 	private boolean autoImports = false;
 
 	private int warningCount = 0;
@@ -88,7 +83,7 @@ public class StandardEnvironment implements Serializable, Environment {
 	private File xmlRootFolder;
 
 	private String[] sourceClasspath = null;
-	
+
 	private URLClassLoader classLoader = null;
 
 	private boolean preserveLineNumbers = false;
@@ -97,6 +92,12 @@ public class StandardEnvironment implements Serializable, Environment {
 
 	private boolean generateJavadoc = false;
 
+	private Logger logger = Logger.getLogger(StandardEnvironment.class);
+
+	private Level level = Level.OFF;
+
+	private boolean shouldCompile;
+
 	/**
 	 * Creates a new environment with a <code>null</code> default file
 	 * generator.
@@ -104,12 +105,12 @@ public class StandardEnvironment implements Serializable, Environment {
 	public StandardEnvironment() {
 	}
 
+	@Override
 	public void debugMessage(String message) {
-		if (isDebug()) {
-			logger.debug(message);
-		}
+		logger.debug(message);
 	}
 
+	@Override
 	public boolean isAutoImports() {
 		return autoImports;
 	}
@@ -119,28 +120,59 @@ public class StandardEnvironment implements Serializable, Environment {
 		this.autoImports = autoImports;
 	}
 
+	@Override
 	public FileGenerator<? extends CtElement> getDefaultFileGenerator() {
 		return defaultFileGenerator;
 	}
 
+	@Override
 	public Factory getFactory() {
 		return factory;
 	}
 
+	@Override
+	public Level getLevel() {
+		return this.level;
+	}
+
+	@Override
+	public void setLevel(String level) {
+		this.level = toLevel(level);
+		logger.setLevel(this.level);
+	}
+
+	@Override
+	public boolean shouldCompile() {
+		return shouldCompile;
+	}
+
+	@Override
+	public void setShouldCompile(boolean shouldCompile) {
+		this.shouldCompile = shouldCompile;
+	}
+
+	private Level toLevel(String level) {
+		if (level == null || level.isEmpty()) {
+			throw new SpoonException("Wrong level given at Spoon.");
+		}
+		return Level.toLevel(level, Level.ALL);
+	}
+
+	@Override
 	public ProcessingManager getManager() {
 		return manager;
 	}
 
 	Map<String, ProcessorProperties> processorProperties = new TreeMap<String, ProcessorProperties>();
 
-	public ProcessorProperties getProcessorProperties(String processorName)
-			throws FileNotFoundException, IOException, SAXException {
+	@Override
+	public ProcessorProperties getProcessorProperties(String processorName) throws FileNotFoundException, IOException, SAXException {
 		if (processorProperties.containsKey(processorName)) {
 			return processorProperties.get(processorName);
 		}
 
 		InputStream in = getPropertyStream(processorName);
-		XmlProcessorProperties prop = null;
+		XmlProcessorProperties prop;
 		try {
 			prop = new XmlProcessorProperties(getFactory(), processorName, in);
 		} catch (SAXException e) {
@@ -150,11 +182,13 @@ public class StandardEnvironment implements Serializable, Environment {
 		return prop;
 	}
 
-	private InputStream getPropertyStream(String processorName)
-			throws FileNotFoundException {
-		for (File child : getXmlRootFolder().listFiles()) {
-			if (child.getName().equals(processorName + PROPERTIES_EXT)) {
-				return new FileInputStream(child);
+	private InputStream getPropertyStream(String processorName) throws FileNotFoundException {
+		File[] listFiles = getXmlRootFolder().listFiles();
+		if (listFiles != null) {
+			for (File child : listFiles) {
+				if (child.getName().equals(processorName + PROPERTIES_EXT)) {
+					return new FileInputStream(child);
+				}
 			}
 		}
 		throw new FileNotFoundException();
@@ -171,143 +205,119 @@ public class StandardEnvironment implements Serializable, Environment {
 		return xmlRootFolder;
 	}
 
-	public boolean isDebug() {
-		return debug;
-	}
-
 	/**
 	 * Tells if the processing is stopped, generally because one of the
 	 * processors called {@link #setProcessingStopped(boolean)} after reporting
 	 * an error.
 	 */
+	@Override
 	public boolean isProcessingStopped() {
 		return processingStopped;
 	}
 
-	/**
-	 * Returns true if Spoon is in verbose mode.
-	 */
-	public boolean isVerbose() {
-		return verbose;
-	}
-
-	private void prefix(StringBuffer buffer, Severity severity) {
-		// Prefix message
-		switch (severity) {
-		case ERROR:
+	private void prefix(StringBuffer buffer, Level level) {
+		if (level == Level.ERROR) {
 			buffer.append("error: ");
 			errorCount++;
-			break;
-		case WARNING:
+		} else if (level == Level.WARN) {
 			buffer.append("warning: ");
 			warningCount++;
-			break;
-		case MESSAGE:
-			break;
 		}
 	}
 
-	private void print(StringBuffer buffer, Severity severity) {
-		switch (severity) {
-		case ERROR:
-			logger.error(buffer.toString());
-			break;
-		case WARNING:
-			logger.warn(buffer.toString());
-			break;
-		default:
-			if (isVerbose()) {
-				logger.info(buffer.toString());
-			}
-		}
-	}
-
-	public void report(Processor<?> processor, Severity severity,
-			CtElement element, String message) {
+	@Override
+	public void report(Processor<?> processor, Level level, CtElement element, String message) {
 		StringBuffer buffer = new StringBuffer();
 
-		prefix(buffer, severity);
+		prefix(buffer, level);
 
 		// Adding message
 		buffer.append(message);
 
 		// Add sourceposition (javac format)
 		try {
-			CtType<?> type = (element instanceof CtType) ? (CtType<?>) element
-					: element.getParent(CtType.class);
+			CtType<?> type = (element instanceof CtType) ? (CtType<?>) element : element.getParent(CtType.class);
 			SourcePosition sp = element.getPosition();
 
 			if (sp == null) {
 				buffer.append(" (Unknown Source)");
 			} else {
 				buffer.append(" at " + type.getQualifiedName() + ".");
-				CtExecutable<?> exe = (element instanceof CtExecutable) ? (CtExecutable<?>) element
-						: element.getParent(CtExecutable.class);
+				CtExecutable<?> exe = (element instanceof CtExecutable) ? (CtExecutable<?>) element : element.getParent(CtExecutable.class);
 				if (exe != null) {
 					buffer.append(exe.getSimpleName());
 				}
-				buffer.append("(" + sp.getFile().getName() + ":" + sp.getLine()
-						+ ")");
+				buffer.append("(" + sp.getFile().getName() + ":" + sp.getLine() + ")");
 			}
 		} catch (ParentNotInitializedException e) {
 			buffer.append(" (invalid parent)");
 		}
 
-		print(buffer, severity);
+		print(buffer.toString(), level);
 	}
 
-	public void report(Processor<?> processor, Severity severity, String message) {
+	@Override
+	public void report(Processor<?> processor, Level level, CtElement element, String message, ProblemFixer<?>... fixes) {
+		report(processor, level, element, message);
+	}
+
+	@Override
+	public void report(Processor<?> processor, Level level, String message) {
 		StringBuffer buffer = new StringBuffer();
 
-		prefix(buffer, severity);
+		prefix(buffer, level);
 		// Adding message
 		buffer.append(message);
-		print(buffer, severity);
+		print(buffer.toString(), level);
+	}
+
+	private void print(String message, Level level) {
+		if (level.equals(Level.ERROR)) {
+			logger.error(message);
+		} else if (level.equals(Level.WARN)) {
+			logger.warn(message);
+		} else if (level.equals(Level.DEBUG)) {
+			logger.debug(message);
+		} else if (level.equals(Level.INFO)) {
+			logger.info(message);
+		}
 	}
 
 	/**
 	 * This method should be called to report the end of the processing.
 	 */
 	public void reportEnd() {
-		if (!isVerbose()) {
-			return;
-		}
-		System.out.print("end of processing: ");
+		logger.info("end of processing: ");
 		if (warningCount > 0) {
-			System.out.print(warningCount + " warning");
+			logger.info(warningCount + " warning");
 			if (warningCount > 1) {
-				System.out.print("s");
+				logger.info("s");
 			}
 			if (errorCount > 0) {
-				System.out.print(", ");
+				logger.info(", ");
 			}
 		}
 		if (errorCount > 0) {
-			System.out.print(errorCount + " error");
+			logger.info(errorCount + " error");
 			if (errorCount > 1) {
-				System.out.print("s");
+				logger.info("s");
 			}
 		}
 		if ((errorCount + warningCount) > 0) {
-			System.out.print("\n");
+			logger.info("\n");
 		} else {
-			System.out.println("no errors, no warnings");
+			logger.info("no errors, no warnings");
 		}
 	}
 
 	public void reportProgressMessage(String message) {
-		if (!isVerbose()) {
-			return;
-		}
-		System.out.println(message);
+		logger.info(message);
 	}
 
 	public void setDebug(boolean debug) {
-		this.debug = debug;
 	}
 
-	public void setDefaultFileGenerator(
-			FileGenerator<? extends CtElement> defaultFileGenerator) {
+	public void setDefaultFileGenerator(FileGenerator<? extends CtElement> defaultFileGenerator) {
 		this.defaultFileGenerator = defaultFileGenerator;
 		defaultFileGenerator.setFactory(getFactory());
 	}
@@ -321,7 +331,6 @@ public class StandardEnvironment implements Serializable, Environment {
 	}
 
 	public void setVerbose(boolean verbose) {
-		this.verbose = verbose;
 	}
 
 	public void setXmlRootFolder(File xmlRootFolder) {
@@ -338,15 +347,8 @@ public class StandardEnvironment implements Serializable, Environment {
 		complianceLevel = level;
 	}
 
-	public void setProcessorProperties(String processorName,
-			ProcessorProperties prop) {
+	public void setProcessorProperties(String processorName, ProcessorProperties prop) {
 		processorProperties.put(processorName, prop);
-	}
-
-	public void report(Processor<?> processor, Severity severity,
-			CtElement element, String message, ProblemFixer<?>... fix) {
-		// Fix not (yet) used in command-line mode
-		report(processor, severity, element, message);
 	}
 
 	boolean useTabulations = false;
@@ -376,9 +378,9 @@ public class StandardEnvironment implements Serializable, Environment {
 		}
 		return classLoader;
 	}
-	
+
 	/**
-	 * Creates a URL class path from {@link getSourceClasspath()} 
+	 * Creates a URL class path from {@link getSourceClasspath()}
 	 */
 	public URL[] urlClasspath() {
 		String[] classpath = getSourceClasspath();
@@ -393,7 +395,7 @@ public class StandardEnvironment implements Serializable, Environment {
 		}
 		return urls;
 	}
-	
+
 	@Override
 	public String[] getSourceClasspath() {
 		return sourceClasspath;
@@ -405,14 +407,13 @@ public class StandardEnvironment implements Serializable, Environment {
 		this.sourceClasspath = sourceClasspath;
 		this.classLoader = null;
 	}
-	
+
 	private void verifySourceClasspath(String[] sourceClasspath) throws InvalidClassPathException {
 		for (String classPathElem : sourceClasspath) {
 			// preconditions
 			File classOrJarFolder = new File(classPathElem);
 			if (!classOrJarFolder.exists()) {
-				throw new InvalidClassPathException(classPathElem
-						+ " does not exist, it is not a valid folder");
+				throw new InvalidClassPathException(classPathElem + " does not exist, it is not a valid folder");
 			}
 
 			if (classOrJarFolder.isDirectory()) {
@@ -420,14 +421,12 @@ public class StandardEnvironment implements Serializable, Environment {
 				SpoonFolder tmp = new FileSystemFolder(classOrJarFolder);
 				List<SpoonFile> javaFiles = tmp.getAllJavaFiles();
 				if (javaFiles.size() > 0) {
-					logger.warn(
-							"You're trying to give source code in the classpath, this should be given to addInputSource "
-									+ javaFiles);
+					logger.warn("You're trying to give source code in the classpath, this should be given to " + "addInputSource " + javaFiles);
 				}
 			}
 		}
 	}
-	
+
 	@Override
 	public int getErrorCount() {
 		return errorCount;
@@ -465,10 +464,12 @@ public class StandardEnvironment implements Serializable, Environment {
 	}
 
 	private boolean noclasspath = false;
+
 	@Override
 	public void setNoClasspath(boolean option) {
 		noclasspath = option;
 	}
+
 	@Override
 	public boolean getNoClasspath() {
 		return noclasspath;

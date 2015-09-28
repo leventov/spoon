@@ -23,24 +23,22 @@ public class LauncherTest extends TestCase {
 
 		final Environment environment = launcher.getEnvironment();
 		// specify the default values
-		Assert.assertFalse(environment.isVerbose());
 		Assert.assertFalse(environment.isAutoImports());
 		Assert.assertFalse(environment.isUsingTabulations());
 		Assert.assertFalse(environment.isPreserveLineNumbers());
 		Assert.assertEquals(4, environment.getTabulationSize());
-		Assert.assertFalse(environment.isDebug());
 		Assert.assertTrue(environment.isCopyResources());
 
 		JavaOutputProcessor processor = (JavaOutputProcessor) environment.getDefaultFileGenerator();
 		Assert.assertTrue(processor.getPrinter() instanceof DefaultJavaPrettyPrinter);
-		
+
 		// now assertions on the model builder
 		final SpoonModelBuilder builder = launcher.getModelBuilder();
-		assertEquals(new File("spooned"), builder.getOutputDirectory());
+		assertEquals(new File("spooned"), builder.getSourceOutputDirectory());
 		assertEquals(0, builder.getInputSources().size());
 		assertEquals("UTF-8", builder.getEncoding());
 	}
-	
+
 	@Test
 	public void testInitEnvironment() throws Exception {
 
@@ -50,19 +48,18 @@ public class LauncherTest extends TestCase {
 		launcher.processArguments();
 
 		final Environment environment = launcher.getEnvironment();
-		
+
 		// Verify if the environment is correct.
-		Assert.assertTrue(environment.isVerbose());
 		Assert.assertTrue(environment.isAutoImports());
 		Assert.assertTrue(environment.isUsingTabulations());
 		Assert.assertTrue(environment.isPreserveLineNumbers());
 		Assert.assertEquals(42, environment.getTabulationSize());
 		Assert.assertEquals(5, environment.getComplianceLevel());
 		Assert.assertFalse(environment.isCopyResources());
-		 
+
 		final SpoonModelBuilder builder = launcher.getModelBuilder();
-		assertEquals(new File("spooned2"), builder.getOutputDirectory());
-		
+		assertEquals(new File("spooned2"), builder.getSourceOutputDirectory());
+
 		// the input directories
 		List<File> inputSources = new ArrayList<>(builder.getInputSources());
 		assertEquals(new File("src/main/java").toURI(), inputSources.get(0).toURI());

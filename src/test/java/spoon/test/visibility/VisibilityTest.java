@@ -39,14 +39,14 @@ public class VisibilityTest {
 
 	@Test
 	public void testVisibilityOfClassesNamedByClassesInJavaLangPackage() throws Exception {
-		final File sourceOutputDir = new File("target/spooned");
+		final File sourceOutputDir = new File("target/spooned/spoon/test/visibility_package/testclasses");
 		final Launcher launcher = new Launcher();
 		launcher.getEnvironment().setAutoImports(true);
 		launcher.getEnvironment().setDefaultFileGenerator(launcher.createOutputWriter(sourceOutputDir, launcher.getEnvironment()));
 		final Factory factory = launcher.getFactory();
 		final SpoonCompiler compiler = launcher.createCompiler();
 		compiler.addInputSource(new File("./src/test/java/spoon/test/visibility/testclasses/"));
-		compiler.setOutputDirectory(sourceOutputDir);
+		compiler.setSourceOutputDirectory(sourceOutputDir);
 		compiler.build();
 		compiler.generateProcessedSourceFiles(OutputType.CLASSES);
 
@@ -60,7 +60,7 @@ public class VisibilityTest {
 		assertNotNull(aFloat);
 		assertEquals(spoon.test.visibility.testclasses.Float.class, aFloat.getActualClass());
 
-		canBeBuild(new File("./target/spooned/spoon/test/visibility/testclasses/"), 7);
+		canBeBuild(new File("./target/spooned/spoon/test/visibility_package/testclasses/"), 7);
 	}
 
 	@Test
@@ -68,27 +68,28 @@ public class VisibilityTest {
 		final SpoonAPI launcher = new Launcher();
 		launcher.run(new String[] {
 				"-i", "./src/test/java/spoon/test/visibility/testclasses/A.java",
-				"-o", "./target/spooned/"
+				"-o", "./target/spooned/spoon/test/visibility_generics/testclasses/"
 		});
 
-		canBeBuild("./target/spooned/spoon/test/visibility/testclasses/", 8);
+		canBeBuild("./target/spooned/spoon/test/visibility_generics/testclasses/", 8);
 	}
 
 	@Test
 	public void testName() throws Exception {
 		final SpoonAPI launcher = new Launcher();
 		launcher.run(new String[] {
-				"-i", "./src/test/java/spoon/test/visibility/testclasses/Tacos.java"
+				"-i", "./src/test/java/spoon/test/visibility/testclasses/Tacos.java",
+				"-o", "./target/spooned/visibility"
 		});
 
-		final List<CtFieldReference> references = Query.getReferences(launcher.getFactory(), new AbstractReferenceFilter<CtFieldReference>(CtFieldReference.class) {
+		final List<CtFieldReference<?>> references = Query.getReferences(launcher.getFactory(), new AbstractReferenceFilter<CtFieldReference<?>>(CtFieldReference.class) {
 			@Override
-			public boolean matches(CtFieldReference reference) {
+			public boolean matches(CtFieldReference<?> reference) {
 				return "x".equals(reference.getSimpleName());
 			}
 		});
 		assertEquals(1, references.size());
-		final CtFieldReference field = references.get(0);
+		final CtFieldReference<?> field = references.get(0);
 		assertNotNull(field.getDeclaration());
 		final CtClass<?> tacos = launcher.getFactory().Class().get("spoon.test.visibility.testclasses.Tacos");
 		assertEquals(tacos, field.getDeclaringType().getDeclaration());

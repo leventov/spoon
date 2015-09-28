@@ -9,7 +9,6 @@ import java.util.TreeMap;
 
 import spoon.reflect.code.CtCatchVariable;
 import spoon.reflect.code.CtFieldAccess;
-import spoon.reflect.code.CtFieldRead;
 import spoon.reflect.code.CtInvocation;
 import spoon.reflect.declaration.CtAnnotationType;
 import spoon.reflect.declaration.CtClass;
@@ -64,7 +63,13 @@ public class ImportScannerImpl extends CtScanner implements ImportScanner {
 	@Override
 	public <T> void visitCtInvocation(CtInvocation<T> invocation) {
 		// For a ctinvocation, we don't have to import declaring type
+		enter(invocation);
+		scan(invocation.getAnnotations());
+		scanReferences(invocation.getTypeCasts());
 		scan(invocation.getTarget());
+		scan(invocation.getExecutable());
+		scan(invocation.getArguments());
+		exit(invocation);
 	}
 
 	@Override
@@ -113,15 +118,15 @@ public class ImportScannerImpl extends CtScanner implements ImportScanner {
 
 	@Override
 	public <T> void visitCtCatchVariable(CtCatchVariable<T> catchVariable) {
-		for(CtTypeReference<?> type : catchVariable.getMultiTypes()) {
+		for (CtTypeReference<?> type : catchVariable.getMultiTypes()) {
 			addImport(type);
 		}
 		super.visitCtCatchVariable(catchVariable);
 	}
 
 	@Override
-	public Collection<CtTypeReference<?>> computeImports(
-			CtType<?> simpleType) {
+	public Collection<CtTypeReference<?>> computeImports(CtType<?> simpleType) {
+		imports.clear();
 		addImport(simpleType.getReference());
 		scan(simpleType);
 		return getImports(simpleType);
@@ -129,6 +134,7 @@ public class ImportScannerImpl extends CtScanner implements ImportScanner {
 
 	@Override
 	public void computeImports(CtElement element) {
+		imports.clear();
 		scan(element);
 	}
 

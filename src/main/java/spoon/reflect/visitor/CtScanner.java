@@ -1,16 +1,16 @@
-/* 
+/*
  * Spoon - http://spoon.gforge.inria.fr/
  * Copyright (C) 2006 INRIA Futurs <renaud.pawlak@inria.fr>
- * 
+ *
  * This software is governed by the CeCILL-C License under French law and
- * abiding by the rules of distribution of free software. You can use, modify 
- * and/or redistribute the software under the terms of the CeCILL-C license as 
- * circulated by CEA, CNRS and INRIA at http://www.cecill.info. 
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT 
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or 
+ * abiding by the rules of distribution of free software. You can use, modify
+ * and/or redistribute the software under the terms of the CeCILL-C license as
+ * circulated by CEA, CNRS and INRIA at http://www.cecill.info.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE. See the CeCILL-C License for more details.
- *  
+ *
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
@@ -149,17 +149,18 @@ public abstract class CtScanner implements CtVisitor {
 	 * Generically scans a meta-model element.
 	 */
 	public void scan(CtElement element) {
-		if ((element != null))
+		if ((element != null)) {
 			element.accept(this);
-
+		}
 	}
 
 	/**
 	 * Generically scans a meta-model element reference.
 	 */
 	public void scan(CtReference reference) {
-		if ((reference != null))
+		if ((reference != null)) {
 			reference.accept(this);
+		}
 
 	}
 
@@ -191,10 +192,12 @@ public abstract class CtScanner implements CtVisitor {
 	 * collection of those.
 	 */
 	public void scan(Object o) {
-		if (o instanceof CtElement)
+		if (o instanceof CtElement) {
 			scan((CtElement) o);
-		if (o instanceof CtReference)
+		}
+		if (o instanceof CtReference) {
 			scan((CtReference) o);
+		}
 		if (o instanceof Collection<?>) {
 			for (Object obj : (Collection<?>) o) {
 				scan(obj);
@@ -358,6 +361,7 @@ public abstract class CtScanner implements CtVisitor {
 		enter(ctEnum);
 		scan(ctEnum.getAnnotations());
 		scan(ctEnum.getFields());
+		scan(ctEnum.getConstructors());
 		scan(ctEnum.getMethods());
 		scan(ctEnum.getNestedTypes());
 		exit(ctEnum);
@@ -551,7 +555,8 @@ public abstract class CtScanner implements CtVisitor {
 	}
 
 	@Override
-	public <T, E extends CtExpression<?>> void visitCtExecutableReferenceExpression(CtExecutableReferenceExpression<T, E> expression) {
+	public <T, E extends CtExpression<?>> void visitCtExecutableReferenceExpression(
+			CtExecutableReferenceExpression<T, E> expression) {
 		enter(expression);
 		scan(expression.getType());
 		scanReferences(expression.getTypeCasts());
@@ -560,7 +565,8 @@ public abstract class CtScanner implements CtVisitor {
 		exit(expression);
 	}
 
-	public <T, A extends T> void visitCtOperatorAssignment(CtOperatorAssignment<T, A> assignment) {
+	public <T, A extends T> void visitCtOperatorAssignment(
+			CtOperatorAssignment<T, A> assignment) {
 		enter(assignment);
 		scan(assignment.getAnnotations());
 		scan(assignment.getType());
@@ -587,7 +593,6 @@ public abstract class CtScanner implements CtVisitor {
 		enter(parameter);
 		scan(parameter.getAnnotations());
 		scan(parameter.getType());
-		scan(parameter.getDefaultExpression());
 		exit(parameter);
 	}
 
@@ -730,10 +735,9 @@ public abstract class CtScanner implements CtVisitor {
 	public void visitCtCodeSnippetStatement(CtCodeSnippetStatement statement) {
 	}
 
-
 	public <T> void visitCtUnboundVariableReference(
 			CtUnboundVariableReference<T> reference) {
-		
+
 	}
 
 	@Override

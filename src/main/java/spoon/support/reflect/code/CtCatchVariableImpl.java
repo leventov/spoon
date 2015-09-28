@@ -2,69 +2,86 @@ package spoon.support.reflect.code;
 
 import spoon.reflect.code.CtCatchVariable;
 import spoon.reflect.code.CtExpression;
+import spoon.reflect.declaration.CtModifiable;
+import spoon.reflect.declaration.CtMultiTypedElement;
+import spoon.reflect.declaration.CtNamedElement;
+import spoon.reflect.declaration.CtTypedElement;
+import spoon.reflect.declaration.CtVariable;
 import spoon.reflect.declaration.ModifierKind;
 import spoon.reflect.reference.CtCatchVariableReference;
 import spoon.reflect.reference.CtTypeReference;
 import spoon.reflect.visitor.CtVisitor;
 import spoon.support.reflect.declaration.CtElementImpl;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Set;
 
-import static spoon.reflect.ModelElementContainerDefaultCapacities.CATCH_VARIABLE_MULTI_TYPES_CONTAINER_DEFAULT_CAPACITY;
+import static spoon.reflect.ModelElementContainerDefaultCapacities
+		.CATCH_VARIABLE_MULTI_TYPES_CONTAINER_DEFAULT_CAPACITY;
 
 public class CtCatchVariableImpl<T> extends CtCodeElementImpl implements CtCatchVariable<T> {
 	private static final long serialVersionUID = 1L;
-
-	CtExpression<T> defaultExpression;
 
 	String name;
 
 	CtTypeReference<T> type;
 
-	List<CtTypeReference<?>> types = EMPTY_LIST();
+	List<CtTypeReference<?>> types = emptyList();
 
-	Set<ModifierKind> modifiers = CtElementImpl.EMPTY_SET();
+	Set<ModifierKind> modifiers = CtElementImpl.emptySet();
 
+	@Override
 	public void accept(CtVisitor visitor) {
 		visitor.visitCtCatchVariable(this);
 	}
 
+	@Override
 	public CtExpression<T> getDefaultExpression() {
-		return defaultExpression;
+		return null;
 	}
 
+	@Override
 	public CtCatchVariableReference<T> getReference() {
 		return getFactory().Code().createCatchVariableReference(this);
 	}
 
+	@Override
 	public String getSimpleName() {
 		return name;
 	}
 
+	@Override
 	public CtTypeReference<T> getType() {
 		return type;
 	}
 
-	public void setDefaultExpression(CtExpression<T> defaultExpression) {
-		this.defaultExpression = defaultExpression;
-		this.defaultExpression.setParent(this);
-	}
-
-	public void setSimpleName(String simpleName) {
-		this.name = simpleName;
-	}
-
-	public void setType(CtTypeReference<T> type) {
-		this.type = type;
+	@Override
+	public <C extends CtVariable<T>> C setDefaultExpression(CtExpression<T> defaultExpression) {
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public boolean addMultiType(CtTypeReference<?> ref) {
-		if (types == CtElementImpl.<CtTypeReference<?>>EMPTY_LIST()) {
+	public <C extends CtNamedElement> C setSimpleName(String simpleName) {
+		this.name = simpleName;
+		return (C) this;
+	}
+
+	@Override
+	public <C extends CtTypedElement> C setType(CtTypeReference<T> type) {
+		this.type = type;
+		return (C) this;
+	}
+
+	@Override
+	public <T extends CtMultiTypedElement> T addMultiType(CtTypeReference<?> ref) {
+		if (types == CtElementImpl.<CtTypeReference<?>>emptyList()) {
 			types = new ArrayList<CtTypeReference<?>>(
 					CATCH_VARIABLE_MULTI_TYPES_CONTAINER_DEFAULT_CAPACITY);
 		}
-		return types.add(ref);
+		types.add(ref);
+		return (T) this;
 	}
 
 	@Override
@@ -88,16 +105,18 @@ public class CtCatchVariableImpl<T> extends CtCodeElementImpl implements CtCatch
 	}
 
 	@Override
-	public void setModifiers(Set<ModifierKind> modifiers) {
+	public <C extends CtModifiable> C setModifiers(Set<ModifierKind> modifiers) {
 		this.modifiers = modifiers;
+		return (C) this;
 	}
 
 	@Override
-	public boolean addModifier(ModifierKind modifier) {
-		if (modifiers == CtElementImpl.<ModifierKind> EMPTY_SET()) {
+	public <C extends CtModifiable> C addModifier(ModifierKind modifier) {
+		if (modifiers == CtElementImpl.<ModifierKind>emptySet()) {
 			this.modifiers = EnumSet.noneOf(ModifierKind.class);
 		}
-		return modifiers.add(modifier);
+		modifiers.add(modifier);
+		return (C) this;
 	}
 
 	@Override
@@ -106,24 +125,28 @@ public class CtCatchVariableImpl<T> extends CtCodeElementImpl implements CtCatch
 	}
 
 	@Override
-	public void setVisibility(ModifierKind visibility) {
-		if (modifiers == CtElementImpl.<ModifierKind> EMPTY_SET()) {
+	public <C extends CtModifiable> C setVisibility(ModifierKind visibility) {
+		if (modifiers == CtElementImpl.<ModifierKind>emptySet()) {
 			this.modifiers = EnumSet.noneOf(ModifierKind.class);
 		}
 		getModifiers().remove(ModifierKind.PUBLIC);
 		getModifiers().remove(ModifierKind.PROTECTED);
 		getModifiers().remove(ModifierKind.PRIVATE);
 		getModifiers().add(visibility);
+		return (C) this;
 	}
 
 	@Override
 	public ModifierKind getVisibility() {
-		if (getModifiers().contains(ModifierKind.PUBLIC))
+		if (getModifiers().contains(ModifierKind.PUBLIC)) {
 			return ModifierKind.PUBLIC;
-		if (getModifiers().contains(ModifierKind.PROTECTED))
+		}
+		if (getModifiers().contains(ModifierKind.PROTECTED)) {
 			return ModifierKind.PROTECTED;
-		if (getModifiers().contains(ModifierKind.PRIVATE))
+		}
+		if (getModifiers().contains(ModifierKind.PRIVATE)) {
 			return ModifierKind.PRIVATE;
+		}
 		return null;
 	}
 }

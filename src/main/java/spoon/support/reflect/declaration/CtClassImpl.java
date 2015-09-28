@@ -17,6 +17,8 @@
 
 package spoon.support.reflect.declaration;
 
+import static spoon.reflect.ModelElementContainerDefaultCapacities.ANONYMOUS_EXECUTABLES_CONTAINER_DEFAULT_CAPACITY;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -30,44 +32,43 @@ import spoon.reflect.code.CtStatementList;
 import spoon.reflect.declaration.CtAnonymousExecutable;
 import spoon.reflect.declaration.CtClass;
 import spoon.reflect.declaration.CtConstructor;
+import spoon.reflect.declaration.CtElement;
 import spoon.reflect.declaration.CtExecutable;
-import spoon.reflect.declaration.CtMethod;
-import spoon.reflect.declaration.CtType;
 import spoon.reflect.reference.CtExecutableReference;
 import spoon.reflect.reference.CtTypeReference;
 import spoon.reflect.visitor.CtVisitor;
+import spoon.support.reflect.code.CtStatementImpl;
 import spoon.support.reflect.eval.VisitorPartialEvaluator;
-
-import static spoon.reflect.ModelElementContainerDefaultCapacities.ANONYMOUS_EXECUTABLES_CONTAINER_DEFAULT_CAPACITY;
 
 /**
  * The implementation for {@link spoon.reflect.declaration.CtClass}.
- * 
+ *
  * @author Renaud Pawlak
  */
-public class CtClassImpl<T extends Object> extends CtTypeImpl<T> implements
-		CtClass<T> {
+public class CtClassImpl<T extends Object> extends CtTypeImpl<T> implements CtClass<T> {
 	private static final long serialVersionUID = 1L;
 
-	List<CtAnonymousExecutable> anonymousExecutables = EMPTY_LIST();
+	List<CtAnonymousExecutable> anonymousExecutables = emptyList();
 
-	Set<CtConstructor<T>> constructors = EMPTY_SET();
+	Set<CtConstructor<T>> constructors = emptySet();
 
 	CtTypeReference<?> superClass;
 
+	@Override
 	public void accept(CtVisitor v) {
 		v.visitCtClass(this);
 	}
 
+	@Override
 	public List<CtAnonymousExecutable> getAnonymousExecutables() {
 		return anonymousExecutables;
 	}
 
+	@Override
 	public CtConstructor<T> getConstructor(CtTypeReference<?>... parameterTypes) {
 		for (CtConstructor<T> c : constructors) {
 			boolean cont = c.getParameters().size() == parameterTypes.length;
-			for (int i = 0; cont && (i < c.getParameters().size())
-					&& (i < parameterTypes.length); i++) {
+			for (int i = 0; cont && (i < c.getParameters().size()) && (i < parameterTypes.length); i++) {
 				if (!c.getParameters().get(i).getType().getQualifiedName()
 						.equals(parameterTypes[i].getQualifiedName())) {
 					cont = false;
@@ -80,24 +81,26 @@ public class CtClassImpl<T extends Object> extends CtTypeImpl<T> implements
 		return null;
 	}
 
+	@Override
 	public Set<CtConstructor<T>> getConstructors() {
 		return constructors;
 	}
 
-	public boolean addAnonymousExecutable(CtAnonymousExecutable e) {
-		if (anonymousExecutables == CtElementImpl
-				.<CtAnonymousExecutable> EMPTY_LIST()) {
+	@Override
+	public <C extends CtClass<T>> C addAnonymousExecutable(CtAnonymousExecutable e) {
+		if (anonymousExecutables == CtElementImpl.<CtAnonymousExecutable>emptyList()) {
 			anonymousExecutables = new ArrayList<CtAnonymousExecutable>(
 					ANONYMOUS_EXECUTABLES_CONTAINER_DEFAULT_CAPACITY);
 		}
 		e.setParent(this);
-		return anonymousExecutables.add(e);
+		anonymousExecutables.add(e);
+		return (C) this;
 	}
 
+	@Override
 	public boolean removeAnonymousExecutable(CtAnonymousExecutable e) {
-		return anonymousExecutables !=
-				CtElementImpl.<CtAnonymousExecutable>EMPTY_LIST() &&
-				anonymousExecutables.remove(e);
+		return anonymousExecutables != CtElementImpl.<CtAnonymousExecutable>emptyList() && anonymousExecutables
+				.remove(e);
 	}
 
 	@Override
@@ -105,20 +108,24 @@ public class CtClassImpl<T extends Object> extends CtTypeImpl<T> implements
 		return superClass;
 	}
 
-	public void setAnonymousExecutables(List<CtAnonymousExecutable> anonymousExecutables) {
+	@Override
+	public <C extends CtClass<T>> C setAnonymousExecutables(List<CtAnonymousExecutable> anonymousExecutables) {
 		this.anonymousExecutables.clear();
 		for (CtAnonymousExecutable exec : anonymousExecutables) {
 			addAnonymousExecutable(exec);
 		}
-	}
-
-	public void setConstructors(Set<CtConstructor<T>> constructors) {
-		this.constructors = constructors;
+		return (C) this;
 	}
 
 	@Override
-	public void addConstructor(CtConstructor<T> constructor) {
-		if (constructors == CtElementImpl.<CtConstructor<T>> EMPTY_SET()) {
+	public <C extends CtClass<T>> C setConstructors(Set<CtConstructor<T>> constructors) {
+		this.constructors = constructors;
+		return (C) this;
+	}
+
+	@Override
+	public <C extends CtClass<T>> C addConstructor(CtConstructor<T> constructor) {
+		if (constructors == CtElementImpl.<CtConstructor<T>>emptySet()) {
 			constructors = new TreeSet<CtConstructor<T>>();
 		}
 		// this needs to be done because of the set that needs the constructor's
@@ -126,6 +133,7 @@ public class CtClassImpl<T extends Object> extends CtTypeImpl<T> implements
 		// TODO: CHANGE SETS TO LIST TO AVOID HAVING TO DO THIS
 		constructor.setParent(this);
 		constructors.add(constructor);
+		return (C) this;
 	}
 
 	@Override
@@ -133,7 +141,7 @@ public class CtClassImpl<T extends Object> extends CtTypeImpl<T> implements
 		if (!constructors.isEmpty()) {
 			if (constructors.size() == 1) {
 				if (constructors.contains(constructor)) {
-					constructors = CtElementImpl.<CtConstructor<T>>EMPTY_SET();
+					constructors = CtElementImpl.<CtConstructor<T>>emptySet();
 				}
 			} else {
 				constructors.remove(constructor);
@@ -141,8 +149,10 @@ public class CtClassImpl<T extends Object> extends CtTypeImpl<T> implements
 		}
 	}
 
-	public void setSuperclass(CtTypeReference<?> superClass) {
+	@Override
+	public <C extends CtClass<T>> C setSuperclass(CtTypeReference<?> superClass) {
 		this.superClass = superClass;
+		return (C) this;
 	}
 
 	@Override
@@ -168,32 +178,38 @@ public class CtClassImpl<T extends Object> extends CtTypeImpl<T> implements
 		return false;
 	}
 
-	public void insertAfter(CtStatement statement) {
-		spoon.support.reflect.code.CtStatementImpl.insertAfter(this, statement);
+	@Override
+	public <C extends CtStatement> C insertAfter(CtStatement statement) {
+		CtStatementImpl.insertAfter(this, statement);
+		return (C) this;
 	}
 
-	public void insertAfter(CtStatementList statements) {
-		spoon.support.reflect.code.CtStatementImpl
-				.insertAfter(this, statements);
+	@Override
+	public <C extends CtStatement> C insertAfter(CtStatementList statements) {
+		CtStatementImpl.insertAfter(this, statements);
+		return (C) this;
 	}
 
-	public void insertBefore(CtStatement statement) {
-		spoon.support.reflect.code.CtStatementImpl
-				.insertBefore(this, statement);
+	@Override
+	public <C extends CtStatement> C insertBefore(CtStatement statement) {
+		CtStatementImpl.insertBefore(this, statement);
+		return (C) this;
 	}
 
-	public void insertBefore(CtStatementList statements) {
-		spoon.support.reflect.code.CtStatementImpl.insertBefore(this,
-				statements);
+	@Override
+	public <C extends CtStatement> C insertBefore(CtStatementList statements) {
+		CtStatementImpl.insertBefore(this, statements);
+		return (C) this;
 	}
 
+	@Override
 	public String getLabel() {
 		return null;
 	}
 
-	public void setLabel(String label) {
-		throw new UnsupportedOperationException(
-				"cannot set a label on a class declaration");
+	@Override
+	public <C extends CtStatement> C setLabel(String label) {
+		throw new UnsupportedOperationException("cannot set a label on a class declaration");
 	}
 
 	@SuppressWarnings("unchecked")
@@ -202,11 +218,10 @@ public class CtClassImpl<T extends Object> extends CtTypeImpl<T> implements
 		VisitorPartialEvaluator eval = new VisitorPartialEvaluator();
 		return eval.evaluate(getParent(), (R) this);
 	}
-	
+
 	@Override
 	public Collection<CtExecutableReference<?>> getDeclaredExecutables() {
-		Collection<CtExecutableReference<?>> declaredExecutables =
-				super.getDeclaredExecutables();
+		Collection<CtExecutableReference<?>> declaredExecutables = super.getDeclaredExecutables();
 		List<CtExecutableReference<?>> l = new ArrayList<CtExecutableReference<?>>(
 				declaredExecutables.size() + getConstructors().size());
 		l.addAll(declaredExecutables);
@@ -214,5 +229,10 @@ public class CtClassImpl<T extends Object> extends CtTypeImpl<T> implements
 			l.add(c.getReference());
 		}
 		return Collections.unmodifiableCollection(l);
+	}
+
+	@Override
+	public void replace(CtStatement element) {
+		replace((CtElement) element);
 	}
 }

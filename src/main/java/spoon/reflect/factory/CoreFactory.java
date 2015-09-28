@@ -1,26 +1,23 @@
-/* 
+/*
  * Spoon - http://spoon.gforge.inria.fr/
  * Copyright (C) 2006 INRIA Futurs <renaud.pawlak@inria.fr>
- * 
+ *
  * This software is governed by the CeCILL-C License under French law and
- * abiding by the rules of distribution of free software. You can use, modify 
- * and/or redistribute the software under the terms of the CeCILL-C license as 
- * circulated by CEA, CNRS and INRIA at http://www.cecill.info. 
- * 
- * This program is distributed in the hope that it will be useful, but WITHOUT 
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or 
+ * abiding by the rules of distribution of free software. You can use, modify
+ * and/or redistribute the software under the terms of the CeCILL-C license as
+ * circulated by CEA, CNRS and INRIA at http://www.cecill.info.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE. See the CeCILL-C License for more details.
- *  
+ *
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
 
 package spoon.reflect.factory;
 
-import java.lang.annotation.Annotation;
-
 import spoon.reflect.code.CtAnnotationFieldAccess;
-import spoon.reflect.code.CtArrayAccess;
 import spoon.reflect.code.CtArrayRead;
 import spoon.reflect.code.CtArrayWrite;
 import spoon.reflect.code.CtAssert;
@@ -39,7 +36,6 @@ import spoon.reflect.code.CtContinue;
 import spoon.reflect.code.CtDo;
 import spoon.reflect.code.CtExecutableReferenceExpression;
 import spoon.reflect.code.CtExpression;
-import spoon.reflect.code.CtFieldAccess;
 import spoon.reflect.code.CtFieldRead;
 import spoon.reflect.code.CtFieldWrite;
 import spoon.reflect.code.CtFor;
@@ -63,7 +59,6 @@ import spoon.reflect.code.CtTry;
 import spoon.reflect.code.CtTryWithResource;
 import spoon.reflect.code.CtTypeAccess;
 import spoon.reflect.code.CtUnaryOperator;
-import spoon.reflect.code.CtVariableAccess;
 import spoon.reflect.code.CtVariableRead;
 import spoon.reflect.code.CtVariableWrite;
 import spoon.reflect.code.CtWhile;
@@ -85,11 +80,14 @@ import spoon.reflect.reference.CtArrayTypeReference;
 import spoon.reflect.reference.CtCatchVariableReference;
 import spoon.reflect.reference.CtExecutableReference;
 import spoon.reflect.reference.CtFieldReference;
+import spoon.reflect.reference.CtImplicitTypeReference;
 import spoon.reflect.reference.CtLocalVariableReference;
 import spoon.reflect.reference.CtPackageReference;
 import spoon.reflect.reference.CtParameterReference;
 import spoon.reflect.reference.CtTypeParameterReference;
 import spoon.reflect.reference.CtTypeReference;
+
+import java.lang.annotation.Annotation;
 
 /**
  * This interface defines the core creation methods for the meta-model (to be
@@ -105,11 +103,11 @@ public interface CoreFactory {
 	/**
 	 * Recursively clones a given element of the metamodel and all its child
 	 * elements.
-	 * 
+	 *
 	 * @param <T>
-	 *            the element's type
+	 * 		the element's type
 	 * @param element
-	 *            the element
+	 * 		the element
 	 * @return a clone of <code>element</code>
 	 */
 	<T> T clone(T element);
@@ -128,15 +126,6 @@ public interface CoreFactory {
 	 * Creates an anonymous executable.
 	 */
 	CtAnonymousExecutable createAnonymousExecutable();
-
-	/**
-	 * Creates an array access expression.
-	 *
-	 * @deprecated See {@link #createArrayRead() createArrayRead}
-	 * or {@link #createArrayWrite() createArrayWrite}
-	 */
-	@Deprecated
-	<T, E extends CtExpression<?>> CtArrayAccess<T, E> createArrayAccess();
 
 	/**
 	 * Creates an array read access expression.
@@ -229,15 +218,6 @@ public interface CoreFactory {
 	<T> CtField<T> createField();
 
 	/**
-	 * Creates a field access expression.
-	 *
-	 * @deprecated See {@link #createFieldRead() createFieldRead}
-	 * or {@link #createFieldWrite() createFieldWrite}
-	 */
-	@Deprecated
-	<T> CtFieldAccess<T> createFieldAccess();
-
-	/**
 	 * Creates a field read access.
 	 */
 	<T> CtFieldRead<T> createFieldRead();
@@ -251,7 +231,7 @@ public interface CoreFactory {
 	 * Creates an access expression to this.
 	 */
 	<T> CtThisAccess<T> createThisAccess();
-	
+
 	/**
 	 * Creates an access expression to super.
 	 */
@@ -325,7 +305,7 @@ public interface CoreFactory {
 	/**
 	 * Creates a constructor call expression.
 	 */
-	<T>CtConstructorCall<T> createConstructorCall();
+	<T> CtConstructorCall<T> createConstructorCall();
 
 	/**
 	 * Creates a new anonymous class expression.
@@ -375,7 +355,8 @@ public interface CoreFactory {
 	/**
 	 * Creates a source position.
 	 */
-	SourcePosition createSourcePosition(CompilationUnit compilationUnit,
+	SourcePosition createSourcePosition(
+			CompilationUnit compilationUnit,
 			int start, int end, int[] lineSeparatorPositions);
 
 	/**
@@ -424,6 +405,11 @@ public interface CoreFactory {
 	<T> CtTypeReference<T> createTypeReference();
 
 	/**
+	 * Creates a inference type reference.
+	 */
+	<T> CtImplicitTypeReference<T> createImplicitTypeReference();
+
+	/**
 	 * Creates a type access expression.
 	 */
 	<T> CtTypeAccess<T> createTypeAccess();
@@ -432,15 +418,6 @@ public interface CoreFactory {
 	 * Creates a unary operator expression.
 	 */
 	<T> CtUnaryOperator<T> createUnaryOperator();
-
-	/**
-	 * Creates a variable access expression.
-	 *
-	 * @deprecated See {@link #createVariableRead() createVariableRead}
-	 * or {@link #createVariableWrite() createVariableWrite}
-	 */
-	@Deprecated
-	<T> CtVariableAccess<T> createVariableAccess();
 
 	/**
 	 * Creates a variable read expression.
@@ -489,7 +466,7 @@ public interface CoreFactory {
 
 	/**
 	 * Create an access to annotation value
-	 * 
+	 *
 	 * @return
 	 */
 	<T> CtAnnotationFieldAccess<T> createAnnotationFieldAccess();
