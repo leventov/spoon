@@ -4,7 +4,6 @@ import org.junit.Test;
 import spoon.reflect.code.CtFieldAccess;
 import spoon.reflect.code.CtLambda;
 import spoon.reflect.code.CtLocalVariable;
-import spoon.reflect.declaration.CtElement;
 import spoon.reflect.declaration.CtField;
 import spoon.reflect.declaration.CtMethod;
 import spoon.reflect.declaration.CtType;
@@ -17,9 +16,7 @@ import spoon.test.TestUtils;
 import java.util.List;
 import java.util.logging.Logger;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 import static spoon.test.TestUtils.build;
 
 public class FieldAccessTest {
@@ -151,6 +148,8 @@ public class FieldAccessTest {
 		assertEquals(MyClass.class, logFieldAccess.getVariable().getDeclaringType().getActualClass());
 
 		String expectedLambda = "() -> {\n" + "    spoon.test.fieldaccesses.MyClass.LOG.info(\"bla\");\n" + "}";
-		assertEquals(expectedLambda, logFieldAccess.getParent(CtLambda.class).toString());
+		expectedLambda = expectedLambda.replaceAll("\\s+", "");
+		String actualLambda = logFieldAccess.getParent(CtLambda.class).toString().replaceAll("\\s+", "");
+		assertEquals(expectedLambda, actualLambda);
 	}
 }
