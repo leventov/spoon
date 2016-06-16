@@ -447,8 +447,7 @@ public class TypeReferenceTest {
 		final CtClass<Object> aClass = launcher.getFactory().Class().get("A");
 		final CtClass anonymousClass = aClass.getElements(new TypeFilter<>(CtNewClass.class)).get(0).getAnonymousClass();
 		assertEquals("1", anonymousClass.getReference().getSimpleName());
-		Set<CtTypeReference<?>> referencedTypes = aClass.getReferencedTypes();
-		assertEquals(7, referencedTypes.size());
+		assertEquals(6, aClass.getReferencedTypes().size());
 	}
 
 	@Test
